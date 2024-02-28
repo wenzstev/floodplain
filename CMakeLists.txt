@@ -23,14 +23,11 @@ FetchContent_MakeAvailable(flecs)
 FetchContent_Declare(SFML 
 	GIT_REPOSITORY https://github.com/SFML/SFML.git 
 	GIT_TAG 2.6.x)
-FetchContent_MakeAvailable(SFML)
 
-FetchContent_Declare(
-	flecs-components-graphics
-	GIT_REPOSITORY https://github.com/flecs-hub/flecs-components-graphics.git
-	GIT_TAG master
-)
-FetchContent_MakeAvailable(flecs-components-graphics)
+# Set the option for static linking
+set(SFML_BUILD_SHARED_LIBS OFF CACHE BOOL "" FORCE)
+
+FetchContent_MakeAvailable(SFML)
 
 
 # Include sub-projects.

@@ -5,7 +5,11 @@ target_link_libraries(flecs_console PRIVATE factories grid flecs::flecs_static s
 target_compile_features(flecs_console PRIVATE cxx_std_17)
 
 
-target_include_directories(flecs_console PRIVATE ../modules/factories/include ../modules/grid/include)
+target_include_directories(flecs_console PRIVATE 
+    ../modules/factories/include 
+    ../modules/grid/include 
+    ../flecs_hub/deps/include
+)
 
 if(WIN32)
     add_custom_command(

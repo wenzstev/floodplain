@@ -24,8 +24,8 @@
 #define FLECS_GAME_BAKE_CONFIG_H
 
 /* Headers of public dependencies */
-#include "cglm.h"
-#include "flecs.h"
+#include <cglm/cglm.h>
+#include <flecs.h>
 #include "flecs_components_input.h"
 #include "flecs_components_graphics.h"
 #include "flecs_components_gui.h"

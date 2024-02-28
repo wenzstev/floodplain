@@ -23,8 +23,8 @@
 #define FLECS_SYSTEMS_TRANSFORM_BAKE_CONFIG_H
 
 /* Headers of public dependencies */
-#include "flecs.h"
-#include "cglm.h"
+#include <flecs.h>
+#include <cglm/cglm.h>
 #include "flecs_components_transform.h"
 
 /* Convenience macro for exporting symbols */

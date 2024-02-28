@@ -23,7 +23,7 @@
 #define FLECS_COMPONENTS_GRAPHICS_BAKE_CONFIG_H
 
 /* Headers of public dependencies */
-#include "flecs.h"
+#include <flecs.h>
 #include "flecs_components_cglm.h"
 
 /* Convenience macro for exporting symbols */
