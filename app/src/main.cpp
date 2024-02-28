@@ -7,6 +7,7 @@
 #include "grid.h"
 #include "flecs_game.h"
 #include "flecs_components_transform.h"
+#include "canvas.h"
 
 
 using namespace std;
@@ -28,60 +29,36 @@ struct Window
 	sf::RenderWindow* window;
 };
 
-struct canvas2d
+canvas2d::canvas2d(flecs::world& world)
 {
-	struct Circle
-	{
-		float x;
-		float y;
-		float r;
-	};
+	world.component<Circle>()
+		.member<float>("X Coordinate")
+		.member<float>("Y Coordinate")
+		.member<float>("Radius");
 
-	struct ScreenDims
-	{
-		int xPixels;
-		int yPixels;
-		string screenName;
-	};
+	world.component<ScreenDims>()
+		.on_set(init_window)
+		.member<int>("width")
+		.member<int>("height")
+		.member<string>("name");
 
-	struct Screen
-	{
-		sf::RenderWindow* canvas;
-	};
+	world.component<Screen>();
 
-	canvas2d(flecs::world& world)
-	{
-		world.component<Circle>()
-			.member<float>("X Coordinate")
-			.member<float>("Y Coordinate")
-			.member<float>("Radius");
+}
 
-		world.component<ScreenDims>()
-			.on_set(init_window)
-			.member<int>("width")
-			.member<int>("height")
-			.member<string>("name");
-
-		world.component<Screen>()
-			.member<sf::RenderWindow*>("Screen");
-
-
-	}
-
-	private:
-		void init_window(flecs::entity window, ScreenDims& screenConfig)
-		{
-			sf::RenderWindow window(sf::VideoMode(screenConfig.xPixels, screenConfig.yPixels), screenConfig.screenName);
-
-
-		}
-};
-
+void canvas2d::init_window(flecs::entity screen, ScreenDims& screenConfig)
+{
+	sf::RenderWindow window(sf::VideoMode(screenConfig.xPixels, screenConfig.yPixels), screenConfig.screenName);
+	flecs::world world = screen.world();
+	world.set<Screen>({ &window });
+}
 
 int main(int, char* []) {
 
 	flecs::world world;
 	sf::RenderWindow window(sf::VideoMode(800, 600), "My window");
+
+	world.import<canvas2d>();
 
 	world.set<Window>({&window});
 
@@ -89,8 +66,8 @@ int main(int, char* []) {
 		.set<Point>({ 5, 5 })
 		.set<Mag>({ 40 });
 
-	flecs::system draw = world.system<Point, Mag, Window>()
-		.term_at(3).singleton()
+	flecs::system draw = world.system<canvas2d::Circle, canvas2d::Screen>()
+		.term_at(2).singleton()
 		.each([](flecs::entity e, Point& p, Mag& m, Window& w)
 			{
 				sf::CircleShape shape(m.m);
@@ -98,6 +75,20 @@ int main(int, char* []) {
 				w.window->draw(shape);
 			});
 
+	flecs::system clearScreen = world.system<canvas2d::Screen>()
+		.kind(flecs::PreUpdate)
+		.each([](flecs::entity e, canvas2d::Screen& s)
+			{
+				s.canvas->clear(sf::Color::Black);
+
+			});
+
+	flecs::system drawScreen = world.system<canvas2d::Screen>()
+		.kind(flecs::PostUpdate)
+		.each([](flecs::entity e, canvas2d::Screen& s)
+			{
+				s.canvas->display();
+			});
 
 	auto next = world.entity("SecondCircle")
 		.set<Point>({ 50, 399 })

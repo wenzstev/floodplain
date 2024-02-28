@@ -1,5 +1,5 @@
 
-add_executable(flecs_console src/main.cpp)
+add_executable(flecs_console src/main.cpp "src/canvas.h")
 
 target_link_libraries(flecs_console PRIVATE factories grid flecs::flecs_static sfml-graphics flecs-components-graphics)
 target_compile_features(flecs_console PRIVATE cxx_std_17)
