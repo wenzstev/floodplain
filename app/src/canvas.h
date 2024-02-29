@@ -12,6 +12,20 @@ struct canvas2d
 		float r;
 	};
 
+	struct Rectangle
+	{
+		float width;
+		float height;
+	};
+
+	struct Color
+	{
+		float r; 
+		float g;
+		float b;
+		float a;
+	};
+
 	struct ScreenDims
 	{
 		int xPixels;

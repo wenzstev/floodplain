@@ -48,39 +48,40 @@ canvas2d::canvas2d(flecs::world& world)
 
 void canvas2d::init_window(flecs::entity screen, ScreenDims& screenConfig)
 {
-	sf::RenderWindow window(sf::VideoMode(screenConfig.xPixels, screenConfig.yPixels), screenConfig.screenName);
+	sf::RenderWindow* window = new sf::RenderWindow(sf::VideoMode(screenConfig.xPixels, screenConfig.yPixels), screenConfig.screenName);
 	flecs::world world = screen.world();
-	world.set<Screen>({ &window });
+	world.set<Screen>({ window });
 }
 
 int main(int, char* []) {
 
 	flecs::world world;
-	sf::RenderWindow window(sf::VideoMode(800, 600), "My window");
 
 	world.import<canvas2d>();
 
-	world.set<Window>({&window});
+	struct SFMLEvent {
+		sf::Event* event;
+	};
 
-	auto c = world.entity("Circle")
-		.set<Point>({ 5, 5 })
-		.set<Mag>({ 40 });
+	flecs::entity screenDims = world.entity()
+		.set<canvas2d::ScreenDims>({ 800, 600, "Window in flecs" });
 
 	flecs::system draw = world.system<canvas2d::Circle, canvas2d::Screen>()
 		.term_at(2).singleton()
-		.each([](flecs::entity e, Point& p, Mag& m, Window& w)
+		.each([](flecs::entity e, canvas2d::Circle& c, canvas2d::Screen& s)
 			{
-				sf::CircleShape shape(m.m);
-				shape.setPosition(p.x, p.y);
-				w.window->draw(shape);
+				sf::CircleShape shape(c.r);
+				shape.setPosition(c.x, c.y);
+				s.canvas->draw(shape);
 			});
+
+
 
 	flecs::system clearScreen = world.system<canvas2d::Screen>()
 		.kind(flecs::PreUpdate)
 		.each([](flecs::entity e, canvas2d::Screen& s)
 			{
 				s.canvas->clear(sf::Color::Black);
-
 			});
 
 	flecs::system drawScreen = world.system<canvas2d::Screen>()
@@ -90,30 +91,19 @@ int main(int, char* []) {
 				s.canvas->display();
 			});
 
+	flecs::system pollEvent = world.system<canvas2d::Screen>()
+		.each([](flecs::entity e, canvas2d::Screen& s) {
+			sf::Event event;
+			bool hasEvent = s.canvas->pollEvent(event);
+			if (event.type == sf::Event::Closed) s.canvas->close();
+		});
+
+
 	auto next = world.entity("SecondCircle")
-		.set<Point>({ 50, 399 })
-		.set<Mag>({ 100 });
+		.set<canvas2d::Circle>({ 50, 34, 10 });
 
-	auto third = world.entity()
-		.set<Point>({ 500, 40 })
-		.set<Mag>({ 60 });
-
-
-	while (window.isOpen())
-	{
-		sf::Event event;
-		while (window.pollEvent(event))
-		{
-			if (event.type == sf::Event::Closed)
-				window.close();
-		}
-
-		window.clear(sf::Color::Black);
-
-		world.progress();
-
-		window.display();
-	}
+	auto e = world.entity("ThirdCircle")
+		.set<canvas2d::Circle>({ 100, 200, 45 });
 
 	return world.app().enable_rest().run();
 
