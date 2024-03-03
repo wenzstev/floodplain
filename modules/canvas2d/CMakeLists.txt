@@ -2,9 +2,9 @@
 set(SOURCE_FILES src/canvas2d.cpp)
 
 add_library(canvas2d STATIC ${SOURCE_FILES})
-target_link_libraries(canvas2d flecs::flecs_static sfml-graphics)
+target_link_libraries(canvas2d flecs::flecs_static sfml-graphics transform)
 
-target_include_directories(canvas2d PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
+target_include_directories(canvas2d PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include ../transform/include)
 
 
 if (CMAKE_VERSION VERSION_GREATER 3.12)

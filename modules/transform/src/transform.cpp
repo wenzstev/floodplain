@@ -14,17 +14,19 @@ transform::transform(flecs::world& world) {
 		.term_at(2).second<World>()
 		.term_at(3).second<World>()
 		.term_at(2).parent().cascade().optional()
-		.iter([&](flecs::iter& it, const Position2 *p, const Position2 *parent, Position2 *worldPos)
-			{
-				for (auto i : it)
-				{
-					worldPos[i].x = p[i].x;
-					worldPos[i].y = p[i].y;
-					if (parent)
-					{
-						worldPos[i].x += parent->x;
-						worldPos[i].y += parent->y;
-					}
-				}
-			});
+		.iter(transform_components);
+}
+
+void transform::transform_components(flecs::iter& it, const Position2* p, const Position2* parent, Position2* worldPos)
+{
+	for (auto i : it)
+	{
+		worldPos[i].x = p[i].x;
+		worldPos[i].y = p[i].y;
+		if (parent)
+		{
+			worldPos[i].x += parent->x;
+			worldPos[i].y += parent->y;
+		}
+	}
 }
