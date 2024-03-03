@@ -13,14 +13,14 @@ FetchContent_MakeAvailable(googletest)
 
 enable_testing()
 add_executable(
-	canvas2dtests 
-	canvas2dtests.cc
+	transformtests 
+	transformtests.cc
 )
 
 
 target_link_libraries(
-	canvas2dtests 
-	canvas2d
+	transformtests 
+	transform
 	gtest 
 	gtest_main
 	gmock
@@ -29,12 +29,12 @@ target_link_libraries(
 )
 
 target_link_libraries(
-	canvas2dtests 
+	transformtests 
 	flecs::flecs_static
 )
 
-target_include_directories(canvas2dtests PRIVATE ../include)
+target_include_directories(transformtests PRIVATE ../include)
 
 
 include(GoogleTest)
-gtest_discover_tests(canvas2dtests)
+gtest_discover_tests(transformtests)

@@ -1,11 +1,10 @@
+#pragma once
+
+
+#include "canvas2d.h"
 
 struct grid_module
 {
-	struct Position2 {
-		float x;
-		float y;
-	};
-
 	struct GridParams {
 		int xCount;
 		int yCount;
@@ -23,6 +22,7 @@ struct grid_module
 
 	struct Grid {
 		flecs::entity Prefab;
+		canvas2d::Vector2 origin;
 		GridCoord x;
 		GridCoord y;
 	};
@@ -32,6 +32,6 @@ struct grid_module
 	private:
 		static void generate_grid(flecs::entity grid, Grid& config);
 		static void create_cell(flecs::world& world, const Grid* grid);
-		static flecs::entity generate_tile(flecs::world& world, float xc, float yc, const GridParams* params);
+		static flecs::entity generate_tile(flecs::world& world, float xc, float yc, const GridParams* params, std::string name);
 		static flecs::entity get_prefab(flecs::world& world, flecs::entity prefab);
 };

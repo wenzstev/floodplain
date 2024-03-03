@@ -7,103 +7,66 @@
 #include "grid.h"
 #include "flecs_game.h"
 #include "flecs_components_transform.h"
-#include "canvas.h"
+#include "canvas2d.h"
+#include "transform.h"
 
 
-using namespace std;
-
-struct Point {
-	float x;
-	float y;
-};
-
-struct Mag
-{
-	float m;
-};
-
-
-
-struct Window
-{
-	sf::RenderWindow* window;
-};
-
-canvas2d::canvas2d(flecs::world& world)
-{
-	world.component<Circle>()
-		.member<float>("X Coordinate")
-		.member<float>("Y Coordinate")
-		.member<float>("Radius");
-
-	world.component<ScreenDims>()
-		.on_set(init_window)
-		.member<int>("width")
-		.member<int>("height")
-		.member<string>("name");
-
-	world.component<Screen>();
-
-}
-
-void canvas2d::init_window(flecs::entity screen, ScreenDims& screenConfig)
-{
-	sf::RenderWindow* window = new sf::RenderWindow(sf::VideoMode(screenConfig.xPixels, screenConfig.yPixels), screenConfig.screenName);
-	flecs::world world = screen.world();
-	world.set<Screen>({ window });
-}
 
 int main(int, char* []) {
+
+
+	struct Agent {};
+
+	struct IsOn {};
+
 
 	flecs::world world;
 
 	world.import<canvas2d>();
 
-	struct SFMLEvent {
-		sf::Event* event;
-	};
-
 	flecs::entity screenDims = world.entity()
-		.set<canvas2d::ScreenDims>({ 800, 600, "Window in flecs" });
+		.set<canvas2d::ScreenDims>({ 1400, 1000, "Window in flecs" });
 
-	flecs::system draw = world.system<canvas2d::Circle, canvas2d::Screen>()
-		.term_at(2).singleton()
-		.each([](flecs::entity e, canvas2d::Circle& c, canvas2d::Screen& s)
-			{
-				sf::CircleShape shape(c.r);
-				shape.setPosition(c.x, c.y);
-				s.canvas->draw(shape);
+	auto gridPrefab = world.prefab("Rect")
+		.set<canvas2d::Rectangle>({ 50, 50 })
+		.set<canvas2d::Color>({ 237, 225, 247, 255 });
+
+
+	world.import<grid_module>();
+
+	flecs::entity g = world.entity("Grid")
+		.set<grid_module::Grid>({
+			gridPrefab,
+			{700, 450},
+			{15, 55},
+			{15, 55}
 			});
 
 
 
-	flecs::system clearScreen = world.system<canvas2d::Screen>()
-		.kind(flecs::PreUpdate)
-		.each([](flecs::entity e, canvas2d::Screen& s)
-			{
-				s.canvas->clear(sf::Color::Black);
-			});
+	flecs::entity agent = world.entity("Agent")
+		.add<Agent>()
+		.set<canvas2d::Circle>({ 40 })
+		.set<canvas2d::Color>({ 100, 100, 100, 255 })
+		.set<canvas2d::Vector2>({ 0,0 });
 
-	flecs::system drawScreen = world.system<canvas2d::Screen>()
-		.kind(flecs::PostUpdate)
-		.each([](flecs::entity e, canvas2d::Screen& s)
-			{
-				s.canvas->display();
-			});
+	flecs::entity cell = world.lookup("Grid::Cell 1 1");
 
-	flecs::system pollEvent = world.system<canvas2d::Screen>()
-		.each([](flecs::entity e, canvas2d::Screen& s) {
-			sf::Event event;
-			bool hasEvent = s.canvas->pollEvent(event);
-			if (event.type == sf::Event::Closed) s.canvas->close();
-		});
+	std::cout << cell;
 
+	agent.child_of(cell);
 
-	auto next = world.entity("SecondCircle")
-		.set<canvas2d::Circle>({ 50, 34, 10 });
+	world.import<transform>();
 
-	auto e = world.entity("ThirdCircle")
-		.set<canvas2d::Circle>({ 100, 200, 45 });
+	auto ent = world.entity("Parent")
+		.add<transform::Position2, transform::World>()
+		.set<transform::Position2, transform::Local>({ 1, 1 });
+
+	auto chi = world.entity("Child")
+		.child_of(ent)
+		.add<transform::Position2, transform::World>()
+		.set<transform::Position2, transform::Local>({ 4, 3 });
+
 
 	return world.app().enable_rest().run();
 

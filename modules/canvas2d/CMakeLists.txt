@@ -1,5 +1,4 @@
 
-
 set(SOURCE_FILES src/canvas2d.cpp)
 
 add_library(canvas2d STATIC ${SOURCE_FILES})
