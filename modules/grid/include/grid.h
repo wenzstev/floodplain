@@ -1,7 +1,6 @@
 #pragma once
+#include "transform.h"
 
-
-#include "canvas2d.h"
 
 struct grid_module
 {
@@ -22,9 +21,23 @@ struct grid_module
 
 	struct Grid {
 		flecs::entity Prefab;
-		canvas2d::Vector2 origin;
 		GridCoord x;
 		GridCoord y;
+	};
+
+	struct Cell {
+		flecs::ref<Cell> neighbors[8];
+	};
+
+	enum Direction {
+		North, 
+		NorthEast,
+		East,
+		SouthEast,
+		South,
+		SouthWest,
+		West,
+		NorthWest
 	};
 
 	grid_module(flecs::world& world);

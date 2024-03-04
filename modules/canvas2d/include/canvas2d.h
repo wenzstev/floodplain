@@ -4,7 +4,7 @@
 #include <iostream>
 #include <SFML/Graphics.hpp>
 #include <variant>
-#include "transform.h""
+#include "transform.h"
 
 
 struct canvas2d
@@ -18,12 +18,6 @@ struct canvas2d
 	{
 		float width;
 		float height;
-	};
-
-	struct Vector2
-	{
-		float x; 
-		float y;
 	};
 
 	struct Rotation
@@ -64,12 +58,18 @@ struct canvas2d
 	};
 
 
+	struct DrawnIn {};
+	struct Background {};
+	struct Main {};
+	struct Foreground {};
+
+
 	canvas2d(flecs::world& world);
 
 private:
 	static void init_window(flecs::entity screen, ScreenDims& screenConfig);
-	static void draw_circle(flecs::entity e, Circle& circle);
-	static void draw_rect(flecs::entity e, Rectangle& rectangle);
+	static void setup_canvas(flecs::world& world, ScreenDims& screenConfig);
+	static void setup_draw_phases(flecs::world& world);
 
 };
 

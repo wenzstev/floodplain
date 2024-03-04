@@ -1,8 +1,10 @@
 #include <flecs.h>
 #include <iostream>
 #include <algorithm>
+#include <string>
+#include <vector>
 #include "grid.h"
-#include "canvas2d.h"
+#include "transform.h"
 
 using namespace std;
 
@@ -24,6 +26,9 @@ grid_module::grid_module(flecs::world& world)
 		.member<float>("X Half")
 		.member<float>("Y Half")
 		.member<flecs::entity>("Cell");
+
+	world.component<Cell>()
+		.member(flecs::Entity, "neighbors", 8);
 
 }
 
@@ -49,15 +54,39 @@ void grid_module::generate_grid(flecs::entity grid, Grid& config) {
 
 	if (!prefab) return;
 
+	std::vector<std::vector<flecs::entity>> cellMatrix(params.xCount, std::vector<flecs::entity>(params.yCount));
+
 	for (auto x = 0; x < params.xCount; x++)
 	{
 		for (auto y = 0; y < params.yCount; y++)
 		{
-			float xc = x * params.xSpacing - params.xHalf + config.origin.x;
-			float yc = y * params.ySpacing - params.yHalf + config.origin.y;
+			float xc = x * params.xSpacing - params.xHalf;
+			float yc = y * params.ySpacing - params.yHalf;
 
 			auto name = "Cell " + to_string(x) + " " + to_string(y);
-			generate_tile(world, xc, yc, &params, name);
+			cellMatrix[x][y] = generate_tile(world, xc, yc, &params, name);
+		}
+	}
+
+	for (auto x = 0; x < params.xCount; x++)
+	{
+		for (auto y = 0; y < params.yCount; y++)
+		{
+			auto cell = cellMatrix[x][y];
+
+			auto getNeighbor = [&](int dx, int dy) -> flecs::entity 
+				{
+					int nx = x + dx;
+					int ny = y + dy;
+					if (nx >= 0 && nx < params.xCount && ny >= 0 && ny < params.yCount) {
+						return cellMatrix[nx][ny];
+					}
+					return {};
+				};
+
+			
+
+
 		}
 	}
 
@@ -72,7 +101,11 @@ flecs::entity grid_module::generate_tile(flecs::world& world, float xc, float yc
 
 	flecs::entity instance = world.entity(name.c_str()).is_a(slot);
 	
-	instance.set<canvas2d::Vector2>({ xc, yc });
+	instance
+		.add<grid_module::Cell>()
+		.set<transform::Position2, transform::Local>({ xc, yc })
+		.add<transform::Position2, transform::World>();
+
 	return instance;
 }
 

@@ -2,13 +2,12 @@
 #include <flecs.h>
 #include <algorithm>
 #include "grid.h"
-#include "canvas2d.h"
+#include "transform.h"
 
 
 TEST(GridTest, CanInstantiateGrid)
 {
 	flecs::world world;
-
 
 	auto testPrefab = world.prefab("prefab");
 
@@ -16,18 +15,18 @@ TEST(GridTest, CanInstantiateGrid)
 
 	auto grid = world.entity("GridTest").set<grid_module::Grid>({ 
 		testPrefab, 
-		{0, 0},
 		{2, 1.0f}, 
 		{2, 1.0f} 
 	});
 
-
-	flecs::query<canvas2d::Vector2> q = world.query<canvas2d::Vector2>();
+	// this is broken
+	flecs::query<transform::Position2, grid_module::Cell> q =
+		world.query<transform::Position2, grid_module::Cell>();
 
 	int count = 0;
 	bool allPrefabs = true;
 
-	q.each([&count, &allPrefabs, &testPrefab](flecs::entity e, canvas2d::Vector2& p) {
+	q.each([&count, &allPrefabs, &testPrefab](flecs::entity e, transform::Position2& p) {
 		count++;
 		allPrefabs = e.has(flecs::IsA, testPrefab);
 		});
@@ -36,44 +35,34 @@ TEST(GridTest, CanInstantiateGrid)
 	ASSERT_EQ(4, count);
 }
 
-TEST(GridTest, CanCenterGrid)
+TEST(GridTest, CanCreateCells)
 {
-	flecs::world world;
+	flecs::world world; 
+
 	auto testPrefab = world.prefab("prefab");
 
 	world.import<grid_module>();
 
 	auto grid = world.entity("GridTest").set<grid_module::Grid>({
 		testPrefab,
-		{100, 100},
-		{2, 1.0f},
-		{2, 1.0f}
+		{3, 1.0f},
+		{3, 1.0f}
 		});
 
+	auto center = world.lookup("GridTest::Cell 1 1");
 
-	flecs::query<canvas2d::Vector2> q = world.query<canvas2d::Vector2>();
+	const grid_module::Cell *cell= center.get<grid_module::Cell>();
 
-	std::vector<canvas2d::Vector2> expectedLocations = {
-		{100, 100},
-		{100, 101},
-		{101, 100},
-		{101, 101}
-	};
+	auto neighbors = cell->neighbors;
+	std::string expectedVals[8] = { "1 0", "1 1", "2 1", "2 2", "1 2", "0 2", "0 1", "0 0" };
 
-	std::vector<canvas2d::Vector2> actualLocations;
+	for (auto i = 0; i < 8; i++)
+	{
+		std::string neighborName = neighbors[i].entity().name();
+		ASSERT_EQ(neighborName.compare(expectedVals[i]), 0);
 
-	q.each([&](flecs::entity e, canvas2d::Vector2& v)
-		{
-			actualLocations.push_back(v);
-		});
-
-	ASSERT_EQ(actualLocations.size(), expectedLocations.size());
-
-	for (const auto& loc : actualLocations) {
-		auto it = std::find_if(expectedLocations.begin(), expectedLocations.end(), [&](const canvas2d::Vector2& expectedLoc) {
-			return loc.x == expectedLoc.x && loc.y == expectedLoc.y;
-			});
-		ASSERT_TRUE(it != expectedLocations.end()) << "Entity found at unexpected location: (" << loc.x << ", " << loc.y << ")";
 	}
+
+
 
 }
