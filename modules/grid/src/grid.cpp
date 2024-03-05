@@ -74,17 +74,31 @@ void grid_module::generate_grid(flecs::entity grid, Grid& config) {
 		{
 			auto cell = cellMatrix[x][y];
 
-			auto getNeighbor = [&](int dx, int dy) -> flecs::entity 
+			flecs::ref<Cell> neighbors[8];
+
+			auto getNeighbor = [&](int dx, int dy) -> flecs::ref<Cell> 
 				{
 					int nx = x + dx;
 					int ny = y + dy;
 					if (nx >= 0 && nx < params.xCount && ny >= 0 && ny < params.yCount) {
-						return cellMatrix[nx][ny];
+						return cellMatrix[nx][ny].get_ref<Cell>();
 					}
 					return {};
 				};
 
-			
+			cell.set([&](Cell& c) {
+				c.neighbors[North] = getNeighbor(0, -1);
+				c.neighbors[NorthEast] = getNeighbor(1, -1);
+				c.neighbors[East] = getNeighbor(1, 0);
+				c.neighbors[SouthEast] = getNeighbor(1, 1);
+				c.neighbors[South] = getNeighbor(0, 1);
+				c.neighbors[SouthWest] = getNeighbor(-1, 1);
+				c.neighbors[West] = getNeighbor(-1, 0);
+				c.neighbors[NorthWest] = getNeighbor(-1, -1);
+				});
+
+
+
 
 
 		}

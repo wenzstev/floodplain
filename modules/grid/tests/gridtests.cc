@@ -20,15 +20,17 @@ TEST(GridTest, CanInstantiateGrid)
 	});
 
 	// this is broken
-	flecs::query<transform::Position2, grid_module::Cell> q =
-		world.query<transform::Position2, grid_module::Cell>();
+	flecs::filter<> f = world.filter_builder()
+		.term<transform::Position2, transform::Local>()
+		.term<grid_module::Cell>()
+		.build();
 
 	int count = 0;
 	bool allPrefabs = true;
 
-	q.each([&count, &allPrefabs, &testPrefab](flecs::entity e, transform::Position2& p) {
+	f.each([&count, &allPrefabs, &testPrefab](flecs::iter& it, size_t index) {
 		count++;
-		allPrefabs = e.has(flecs::IsA, testPrefab);
+		allPrefabs = it.entity(index).has(flecs::IsA, testPrefab);
 		});
 
 	ASSERT_EQ(true, allPrefabs);
@@ -51,15 +53,17 @@ TEST(GridTest, CanCreateCells)
 
 	auto center = world.lookup("GridTest::Cell 1 1");
 
-	const grid_module::Cell *cell= center.get<grid_module::Cell>();
+	const grid_module::Cell *cell = center.get<grid_module::Cell>();
 
 	auto neighbors = cell->neighbors;
-	std::string expectedVals[8] = { "1 0", "1 1", "2 1", "2 2", "1 2", "0 2", "0 1", "0 0" };
+	std::string expectedVals[8] = { "1 0", "2 0", "2 1", "2 2", "1 2", "0 2", "0 1", "0 0" };
 
 	for (auto i = 0; i < 8; i++)
 	{
-		std::string neighborName = neighbors[i].entity().name();
-		ASSERT_EQ(neighborName.compare(expectedVals[i]), 0);
+		ASSERT_NE(neighbors[i].entity(), 0);
+		std::stringstream ss;
+		ss << "Cell " << expectedVals[i];
+		ASSERT_EQ(ss.str().compare(neighbors[i].entity().name()), 0);
 
 	}
 
