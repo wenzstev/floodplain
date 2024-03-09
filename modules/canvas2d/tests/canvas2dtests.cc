@@ -25,7 +25,7 @@ TEST(RenderSystemTest, RendersCorrectly)
 
     world.import<canvas2d>();
 
-    flecs::entity e = world.entity().set<canvas2d::Circle>({ 5, 5, 50 });
+    flecs::entity e = world.entity().set<canvas2d::Circle>({ 50 });
 
     flecs::entity screenDims = world.entity().set<canvas2d::ScreenDims>({ 800, 600, "Test window" });
 

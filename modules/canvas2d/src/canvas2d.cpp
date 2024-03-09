@@ -22,11 +22,6 @@ canvas2d::canvas2d(flecs::world& world)
 		.member<float>("width")
 		.member<float>("height");
 
-	world.component<Color>()
-		.member<float>("Red")
-		.member<float>("Green")
-		.member<float>("Blue")
-		.member<float>("Alpha");
 
 	world.component<Rotation>()
 		.member<float, flecs::units::angle>("angle");
@@ -49,7 +44,7 @@ void drawShape(flecs::world& world, ShapeCreator createShape, flecs::entity Phas
 				{
 					auto shape = createShape(shapeComp[i]);
 					auto e = it.entity(i);
-					const canvas2d::Color* color = e.get<canvas2d::Color>();
+					const transform::Color* color = e.get<transform::Color>();
 					if (color) {
 						shape.setFillColor(sf::Color(color->r, color->g, color->b, color->a));
 					}

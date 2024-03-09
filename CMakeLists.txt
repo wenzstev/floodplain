@@ -33,4 +33,3 @@ FetchContent_MakeAvailable(SFML)
 # Include sub-projects.
 add_subdirectory ("app")
 add_subdirectory ("modules")
-add_subdirectory ("flecs_hub")

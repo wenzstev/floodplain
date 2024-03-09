@@ -33,13 +33,7 @@ struct canvas2d
 	struct OriginatesAt {};
 	struct ScalesTo {};
 
-	struct Color
-	{
-		float r;
-		float g;
-		float b;
-		float a;
-	};
+
 
 	struct ScreenDims
 	{

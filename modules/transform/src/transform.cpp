@@ -8,6 +8,13 @@ transform::transform(flecs::world& world) {
 	world.component<World>();
 	world.component<Local>();
 
+	world.component<Color>()
+		.member<float>("Red")
+		.member<float>("Green")
+		.member<float>("Blue")
+		.member<float>("Alpha");
+
+
 
 	world.system<const transform::Position2, const transform::Position2, transform::Position2>()
 		.term_at(1).second<Local>()

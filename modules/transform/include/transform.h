@@ -7,6 +7,14 @@ struct transform
 		float x, y;
 	};
 
+	struct Color
+	{
+		float r;
+		float g;
+		float b;
+		float a;
+	};
+	
 	struct World {};
 	struct Local {};
 
