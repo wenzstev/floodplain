@@ -118,9 +118,8 @@ int main(int, char* []) {
 	agentA.child_of(cellA);
 	agentB.child_of(cellB);
 
-	flecs::log::set_level(1);
 
-	world.set_threads(2);
+	world.set_threads(1);
 	return world.app().enable_rest().run();
 
 }

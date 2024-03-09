@@ -16,19 +16,14 @@ agents::agents(flecs::world& world)
 
 
 	world.system<Agent>("AgentReproduce")
-		.multi_threaded()
 		.each([](flecs::iter& it, size_t i, Agent& a)
 			{
 				if (rand() % 25 != 1) return;
 				auto world = it.world();
 
 				auto agentPrefab = world.lookup("AgentPrefab");
-				std::cout << "Agent prefab: " << agentPrefab << "\n";
 				auto newAgent = world.entity();
 				world.make_alive(newAgent);
-				std::cout << "New agent: " << newAgent << "\n";
-				std::cout << "Readonly? " << world.is_readonly() << "\n";
-				std::cout << "New agent is alive? " << newAgent.is_alive() << "\n";
 				newAgent.set<agents::Age>({ 0 });
 				newAgent.set<agents::Agent>({ { a.color.r, a.color.g, a.color.b, a.color.a } });
 				newAgent.set<transform::Position2, transform::Local>({ 0,0 });
@@ -38,6 +33,7 @@ agents::agents(flecs::world& world)
 			});
 
 	world.system<CarryingCapacity>("CheckCC")
+		.multi_threaded()
 		.each([](flecs::entity e, const CarryingCapacity& cc)
 			{
 				int count = 0;
@@ -55,13 +51,14 @@ agents::agents(flecs::world& world)
 			});
 
 	world.system<Agent>("ChangeColor")
+		.multi_threaded()
 		.each([](flecs::entity e, Agent& a)
 			{
 				transform::Color agentColor = a.color;
 				auto modifyColor = [](float c) -> float {
-					std::random_device rd;
-					std::mt19937 gen(rd());
-					std::uniform_real_distribution<float> dis(-1.0, 1.0);
+					static std::random_device rd;
+					static std::mt19937 gen(rd());
+					static std::uniform_real_distribution<float> dis(-1.0, 1.0);
 					float randVal = dis(gen);
 
 					return c + randVal;
