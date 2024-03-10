@@ -111,15 +111,20 @@ int main(int, char* []) {
 
 	flecs::entity cellA = world.lookup("Grid::Cell 1 10");
 	flecs::entity cellB = world.lookup("Grid::Cell 20 1");
+	flecs::entity cellC = world.lookup("Grid::Cell 25 25");
 
 	auto agentA = world.entity().is_a(agentPrefab).set<agents::Agent>({ {100, 200, 100, 255} });
 	auto agentB = world.entity().is_a(agentPrefab).set<agents::Agent>({ {200, 100, 100, 255} });
+	auto agentC = world.entity().is_a(agentPrefab).set<agents::Agent>({ {100, 100, 200, 255} });
+
 
 	agentA.child_of(cellA);
 	agentB.child_of(cellB);
+	agentC.child_of(cellC);
 
 
-	world.set_threads(1);
+
+	world.set_threads(12);
 	return world.app().enable_rest().run();
 
 }

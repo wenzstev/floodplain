@@ -18,7 +18,7 @@ agents::agents(flecs::world& world)
 	world.system<Agent>("AgentReproduce")
 		.each([](flecs::iter& it, size_t i, Agent& a)
 			{
-				if (rand() % 25 != 1) return;
+				if (rand() % 5 != 1) return;
 				auto world = it.world();
 
 				auto agentPrefab = world.lookup("AgentPrefab");
