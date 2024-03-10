@@ -71,4 +71,41 @@ agents::agents(flecs::world& world)
 					255
 					});
 			});
+
+	world.system<CarryingCapacity>("MergeAgents")
+		.multi_threaded()
+		.each([](flecs::entity e, CarryingCapacity& c)
+			{
+				float r, g, b;
+				int count;
+				e.children([&](flecs::entity child)
+					{ 
+						auto agent = child.get<Agent>();
+						if (!agent) return;
+						r += agent->color.r;
+						g += agent->color.g;
+						b += agent->color.b;
+						count++;
+					});
+				r = r / count;
+				g = g / count;
+				b = b / count;
+
+				e.children([&](flecs::entity child)
+					{
+						auto agent = child.get<Agent>();
+						if (!agent) return;
+						auto dr = r - agent->color.r;
+						auto dg = g - agent->color.g;
+						auto db = b - agent->color.b;
+
+						auto change = 0.05;
+
+						auto cr = dr * change;
+						auto cg = dg * change;
+						auto cb = db * change;
+
+						child.mut(e).set<Agent>({{ agent->color.r * cr, agent->color.g * cg, agent->color.b * cb, 255 }});
+					});
+			});
 }
