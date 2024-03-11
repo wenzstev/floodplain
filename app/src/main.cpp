@@ -1,6 +1,7 @@
 #include <iostream>
 #include <flecs.h>
 #include <direct.h>
+#include <thread>
 #include <random>
 #include <filesystem>
 #include <SFML/Graphics.hpp>
@@ -121,7 +122,6 @@ int main(int, char* []) {
 	agentA.child_of(cellA);
 	agentB.child_of(cellB);
 	agentC.child_of(cellC);
-
 
 
 	world.set_threads(12);

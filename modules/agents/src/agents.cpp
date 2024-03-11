@@ -1,5 +1,6 @@
 #include <iostream>
 #include <random>
+#include <thread>
 
 #include "agents.h"
 
@@ -72,9 +73,10 @@ agents::agents(flecs::world& world)
 					});
 			});
 
-	auto mergeAgents = world.system<CarryingCapacity>("MergeAgents")
+	auto mergeAgents = world.system<>("MergeAgents")
+		.with<CarryingCapacity>()
 		.multi_threaded()
-		.each([](flecs::entity e, CarryingCapacity& c)
+		.each([](flecs::entity e)
 			{
 				float r = 0, g = 0, b = 0;
 				int count = 0;
