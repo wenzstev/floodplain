@@ -72,12 +72,12 @@ agents::agents(flecs::world& world)
 					});
 			});
 
-	world.system<CarryingCapacity>("MergeAgents")
+	auto mergeAgents = world.system<CarryingCapacity>("MergeAgents")
 		.multi_threaded()
 		.each([](flecs::entity e, CarryingCapacity& c)
 			{
-				float r, g, b;
-				int count;
+				float r = 0, g = 0, b = 0;
+				int count = 0;
 				e.children([&](flecs::entity child)
 					{ 
 						auto agent = child.get<Agent>();
@@ -87,25 +87,35 @@ agents::agents(flecs::world& world)
 						b += agent->color.b;
 						count++;
 					});
+				if (count == 0) return;
 				r = r / count;
 				g = g / count;
 				b = b / count;
 
 				e.children([&](flecs::entity child)
 					{
-						auto agent = child.get<Agent>();
+						auto agent = child.get_mut<Agent>();
 						if (!agent) return;
+
+						auto prevR = agent->color.r;
+						auto prevG = agent->color.g;
+						auto prevB = agent->color.b;
+
 						auto dr = r - agent->color.r;
 						auto dg = g - agent->color.g;
 						auto db = b - agent->color.b;
 
-						auto change = 0.05;
+						float change = 0.01;
 
 						auto cr = dr * change;
 						auto cg = dg * change;
 						auto cb = db * change;
 
-						child.mut(e).set<Agent>({{ agent->color.r * cr, agent->color.g * cg, agent->color.b * cb, 255 }});
+						agent->color.r = cr + prevR;
+						agent->color.g = cg + prevG;
+						agent->color.b = cb + prevB;
 					});
 			});
+
+	//mergeAgents.disable();
 }

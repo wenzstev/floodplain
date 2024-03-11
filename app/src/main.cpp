@@ -26,7 +26,7 @@ int main(int, char* []) {
 	auto gridPrefab = world.prefab("Rect")
 		.set<canvas2d::Rectangle>({ 30, 30 })
 		.add<canvas2d::DrawnIn, canvas2d::Background>()
-		.set<agents::CarryingCapacity>({ 20 });
+		.set<agents::CarryingCapacity>({ 20});
 
 	flecs::entity g = world.entity("Grid")
 		.set<transform::Position2, transform::World>({ 700, 500 })
