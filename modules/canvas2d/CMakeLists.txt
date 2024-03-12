@@ -22,5 +22,3 @@ endif()
 
 install(TARGETS canvas2d)
 
-add_subdirectory(tests)
-

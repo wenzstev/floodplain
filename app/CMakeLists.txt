@@ -6,7 +6,6 @@ target_compile_features(flecs_console PRIVATE cxx_std_17)
 
 
 target_include_directories(flecs_console PRIVATE 
-    ../modules/factories/include 
     ../modules/grid/include 
     ../modules/canvas2d/include
     ../modules/transform/include

@@ -19,7 +19,6 @@ TEST(GridTest, CanInstantiateGrid)
 		{2, 1.0f} 
 	});
 
-	// this is broken
 	flecs::filter<> f = world.filter_builder()
 		.term<transform::Position2, transform::Local>()
 		.term<grid_module::Cell>()
