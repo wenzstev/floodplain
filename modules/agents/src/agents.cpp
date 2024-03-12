@@ -3,6 +3,7 @@
 #include <thread>
 
 #include "agents.h"
+#include "grid.h"
 
 agents::agents(flecs::world& world)
 {
@@ -119,5 +120,60 @@ agents::agents(flecs::world& world)
 					});
 			});
 
-	//mergeAgents.disable();
+
+	world.system<agents::Agent>("AgentMove")
+		.each([](flecs::entity e, agents::Agent& a)
+			{
+				if (rand() % 10 != 1) return;
+
+				auto parent = e.parent();
+				const grid_module::Cell* parentCell = parent.get<grid_module::Cell>();
+				auto newCellIndex = rand() % 8;
+				flecs::ref<grid_module::Cell> refCell = parentCell->neighbors[newCellIndex];
+				if (refCell.try_get())
+				{
+					flecs::entity newCell = refCell.entity();
+					e.remove(flecs::ChildOf, parent);
+					e.add(flecs::ChildOf, newCell);
+				}
+			});
+
+	world.system<transform::Color>("AgentDraw")
+		.with<CarryingCapacity>()
+		.each([](flecs::entity e, transform::Color& color)
+			{
+				float r = 0, g = 0, b = 0;
+				int count = 0;
+				e.children([&](flecs::entity child)
+					{
+						auto* agent = child.get<agents::Agent>();
+						if (!agent) return;
+						count++;
+						r += agent->color.r;
+						g += agent->color.g;
+						b += agent->color.b;
+					});
+				if (count == 0)
+				{
+					color.r = 250;
+					color.g = 250;
+					color.b = 250;
+					color.a = 255;
+					return;
+				}
+				color.r = r / count;
+				color.g = g / count;
+				color.b = b / count;
+				color.a = 255;
+			});
+
+
+
+	world.system<agents::Age>("Age")
+		.each([](flecs::entity e, agents::Age& a)
+			{
+				a.age++;
+				if (a.age > 40) e.destruct();
+			});
+
 }

@@ -47,6 +47,11 @@ struct canvas2d
 		std::unique_ptr<sf::RenderWindow> canvas;
 	};
 
+	struct View
+	{
+		std::unique_ptr<sf::View> view;
+	};
+
 	struct SFMLEvent {
 		sf::Event* event;
 	};

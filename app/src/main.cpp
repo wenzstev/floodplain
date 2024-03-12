@@ -51,64 +51,6 @@ int main(int, char* []) {
 		});
 	world.defer_end();
 
-	world.system<agents::Agent>("AgentMove")
-		.each([](flecs::entity e, agents::Agent& a)
-			{
-				if (rand() % 10 != 1) return;
-
-				auto parent = e.parent();
-				const grid_module::Cell* parentCell = parent.get<grid_module::Cell>();
-				auto newCellIndex = rand() % 8;
-				flecs::ref<grid_module::Cell> refCell = parentCell->neighbors[newCellIndex];
-				if (refCell.try_get())
-				{
-					flecs::entity newCell = refCell.entity();
-					e.remove(flecs::ChildOf, parent);
-					e.add(flecs::ChildOf, newCell);
-				}
-			});
-
-	world.system<grid_module::Cell, transform::Color>("AgentDraw")
-		.each([](flecs::entity e, grid_module::Cell& cell, transform::Color& color)
-			{
-				float r = 0, g = 0, b = 0;
-				int count = 0;
-				e.children([&](flecs::entity child)
-					{
-						auto* agent = child.get<agents::Agent>();
-						if (!agent) return;
-						count++;
-						r += agent->color.r;
-						g += agent->color.g;
-						b += agent->color.b;
-					});
-				if (count == 0)
-				{
-					color.r = 250;
-					color.g = 250;
-					color.b = 250;
-					color.a = 255;
-					return;
-				}
-				color.r = r / count;
-				color.g = g / count;
-				color.b = b / count;
-				color.a = 255;
-			});
-
-
-
-	world.system<agents::Age>("Age")
-		.each([](flecs::entity e, agents::Age& a)
-			{
-				a.age++;
-				if (a.age > 40) e.destruct();
-			});
-	
-
-
-
-
 
 	flecs::entity cellA = world.lookup("Grid::Cell 1 10");
 	flecs::entity cellB = world.lookup("Grid::Cell 20 1");
@@ -122,6 +64,29 @@ int main(int, char* []) {
 	agentA.child_of(cellA);
 	agentB.child_of(cellB);
 	agentC.child_of(cellC);
+
+	struct View
+	{
+		std::unique_ptr<sf::View> v;
+	};
+
+	struct ViewScale
+	{
+		float x, y;
+	};
+
+	
+
+
+
+	auto camera = world.entity();
+	camera.set<transform::Position2>({ 350, 300 });
+	camera.set<ViewScale>({ 300, 200 });
+	std::unique_ptr<sf::View> viewPtr(new sf::View(sf::Vector2f(350.f, 300.f), sf::Vector2f(300.f, 200.f)));
+	camera.set<View>({ std::move(viewPtr) });
+	auto view = camera.get<View>();
+	world.get<canvas2d::Screen>()->canvas->setView(*view->v);
+
 
 
 	world.set_threads(12);
