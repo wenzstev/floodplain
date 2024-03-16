@@ -16,7 +16,10 @@ canvas2d::canvas2d(flecs::world& world)
 		.member<std::string>("name");
 
 	world.component<Screen>()
-		.member<std::shared_ptr<sf::RenderWindow>>("canvas");
+		.member<std::unique_ptr<sf::RenderWindow>>("canvas");
+
+	world.component<View>()
+		.member<std::unique_ptr<sf::View>>("View");
 
 	world.component<Rectangle>()
 		.member<float>("width")
@@ -67,6 +70,11 @@ void canvas2d::init_window(flecs::entity screen, ScreenDims& screenConfig)
 	flecs::world world = screen.world();
 	setup_canvas(world, screenConfig);
 	setup_draw_phases(world);
+}
+
+void canvas2d::init_view(flecs::entity view)
+{
+
 }
 
 void canvas2d::setup_canvas(flecs::world& world, ScreenDims& screenConfig)
