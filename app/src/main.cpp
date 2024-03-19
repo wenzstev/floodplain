@@ -70,23 +70,16 @@ int main(int, char* []) {
 		std::unique_ptr<sf::View> v;
 	};
 
-	struct ViewScale
-	{
-		float x, y;
-	};
+	struct ViewScale{};
+	struct ViewPos {};
 
 	
 
 
-
 	auto camera = world.entity();
-	camera.set<transform::Position2>({ 350, 300 });
-	camera.set<ViewScale>({ 300, 200 });
-	std::unique_ptr<sf::View> viewPtr(new sf::View(sf::Vector2f(350.f, 300.f), sf::Vector2f(300.f, 200.f)));
-	camera.set<View>({ std::move(viewPtr) });
-	auto view = camera.get<View>();
-	world.get<canvas2d::Screen>()->canvas->setView(*view->v);
-
+	camera.set<ViewPos, transform::Position2>({ 350, 300 });
+	camera.set<ViewScale, transform::Position2>({ 300, 200 });
+	camera.add<View>();
 
 
 	world.set_threads(12);

@@ -49,13 +49,12 @@ struct canvas2d
 
 	struct View
 	{
-		std::unique_ptr<sf::View> view;
+		std::unique_ptr<sf::View> v;
 	};
 
-	struct ViewDims
-	{
-
-	};
+	struct ViewPos {};
+	struct ViewScale {};
+	
 
 	struct SFMLEvent {
 		sf::Event* event;
@@ -72,7 +71,7 @@ struct canvas2d
 
 private:
 	static void init_window(flecs::entity screen, ScreenDims& screenConfig);
-	static void init_view(flecs::entity view);
+	static void init_view(flecs::entity viewEnt, View& view);
 	static void setup_canvas(flecs::world& world, ScreenDims& screenConfig);
 	static void setup_draw_phases(flecs::world& world);
 
