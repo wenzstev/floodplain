@@ -121,7 +121,19 @@ void canvas2d::setup_canvas(flecs::world& world, ScreenDims& screenConfig)
 			{
 				sf::Event event;
 				bool hasEvent = s.canvas->pollEvent(event);
-				if (event.type == sf::Event::Closed) s.canvas->close();
+				if (!hasEvent) return;
+				e.world().event<sf::Event>().entity(e).emit();
+			});
+
+	world.observer()
+		.with(flecs::Any)
+		.event<sf::Event>()
+		.each([](flecs::iter& it, size_t i)
+			{
+				std::cout << it.entity(i).name() << " fired event. \n";
+				auto eve = it.event().get<sf::Event>();
+				std::cout << (eve->type == sf::Event::Closed) << "\n";
+				
 			});
 
 	world.system<canvas2d::Screen>()

@@ -92,7 +92,8 @@ int main(int, char* []) {
 	
 	struct InputState
 	{
-		std::vector<bool> PressedKeys(32); // vectors the length of the pressed keys?
+		bool PressedKeys[sf::Keyboard::KeyCount];
+		//std::vector<bool> PressedKeys(32); // vectors the length of the pressed keys?
 	};
 
 	world.system()
