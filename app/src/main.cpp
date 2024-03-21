@@ -74,25 +74,40 @@ int main(int, char* []) {
 	flecs::entity wpressed = world.entity();
 	wpressed.add(sf::Keyboard::W);
 
+	struct KeyEvent {};
 
-	world.system<sf::Keyboard::Key>()
-		.term_at(1).second(flecs::Wildcard)
-		.iter([](flecs::iter& it, sf::Keyboard::Key* key)
+
+	flecs::entity thing = world.entity("Thing");
+
+	world.observer()
+		.with(flecs::Any)
+		.event<KeyEvent>()
+		.each([](flecs::iter& it, size_t i)
 			{
-				for (auto i : it)
-				{
-					auto entity = it.entity(i);
-					auto key = it.pair(1).second();
-					const sf::Keyboard::Key* k = key.get<sf::Keyboard::Key>();
-					if (sf::Keyboard::isKeyPressed(*k))
-					{
-						std::cout << k << " is pressed! \n";
-					}
-				}
-
+				std::cout << it.entity(i).name() << " fired event. \n";
 			});
 
-	world.set_threads(12);
+	world.event<KeyEvent>().entity(thing).emit();
+
+	
+	struct InputState
+	{
+		std::vector<bool> PressedKeys(32); // vectors the length of the pressed keys?
+	};
+
+	world.system()
+		.iter([](flecs::iter& it)
+			{
+
+				if (sf::Keyboard::isKeyPressed(sf::Keyboard::W))
+				{
+					it.world().event<KeyEvent>().emit();
+				}
+				
+
+			});
+		
+	//world.set_threads(12);
 	return world.app().enable_rest().run();
 
 }
