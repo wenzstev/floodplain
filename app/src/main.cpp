@@ -65,22 +65,32 @@ int main(int, char* []) {
 	agentB.child_of(cellB);
 	agentC.child_of(cellC);
 
-	struct View
-	{
-		std::unique_ptr<sf::View> v;
-	};
-
-	struct ViewScale{};
-	struct ViewPos {};
-
 	
-
-
 	auto camera = world.entity();
-	camera.set<ViewPos, transform::Position2>({ 350, 300 });
-	camera.set<ViewScale, transform::Position2>({ 300, 200 });
-	camera.add<View>();
+	camera.set<canvas2d::ViewPos, transform::Position2>({ 350, 300 });
+	camera.set<canvas2d::ViewScale, transform::Position2>({ 300, 200 });
+	camera.add<canvas2d::View>();
 
+	flecs::entity wpressed = world.entity();
+	wpressed.add(sf::Keyboard::W);
+
+
+	world.system<sf::Keyboard::Key>()
+		.term_at(1).second(flecs::Wildcard)
+		.iter([](flecs::iter& it, sf::Keyboard::Key* key)
+			{
+				for (auto i : it)
+				{
+					auto entity = it.entity(i);
+					auto key = it.pair(1).second();
+					const sf::Keyboard::Key* k = key.get<sf::Keyboard::Key>();
+					if (sf::Keyboard::isKeyPressed(*k))
+					{
+						std::cout << k << " is pressed! \n";
+					}
+				}
+
+			});
 
 	world.set_threads(12);
 	return world.app().enable_rest().run();

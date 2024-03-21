@@ -33,7 +33,14 @@ canvas2d::canvas2d(flecs::world& world)
 	world.component<Rotation>()
 		.member<float, flecs::units::angle>("angle");
 
-	world.component<OriginatesAt>();
+	world.system<View, transform::Position2, transform::Position2>("MoveView")
+		.term_at(2).first<ViewPos>()
+		.term_at(3).first<ViewScale>()
+		.each([](flecs::entity e, View& v, transform::Position2 pos, transform::Position2 scale)
+			{
+				v.v->setCenter(sf::Vector2(pos.x, pos.y));
+				v.v->setSize(sf::Vector2(scale.x, scale.y));
+			});
 }
 
 
@@ -76,19 +83,32 @@ void canvas2d::init_window(flecs::entity screen, ScreenDims& screenConfig)
 	setup_draw_phases(world);
 }
 
-void canvas2d::init_view(flecs::entity viewEnt, View& view)
+void canvas2d::init_view(flecs::entity viewEnt, View& viewComp)
 {
 	const transform::Position2* position = viewEnt.get<ViewPos, transform::Position2>();
 	const transform::Position2* scale = viewEnt.get<ViewScale, transform::Position2>();
+
+	if (!position || !scale)
+	{
+		std::cout << "Tried to add a view without position or scale components -- not allowed.";
+		return;
+	}
 
 	std::unique_ptr<sf::View> viewPtr(new sf::View(
 		sf::Vector2f(position->x, position->y), 
 		sf::Vector2f(scale->x, scale->y)));
 
-	viewEnt.set<View>({ std::move(viewPtr) });
+	viewComp.v = std::move(viewPtr);
 	auto world = viewEnt.world();
 
-	world.get<canvas2d::Screen>()->canvas->setView(*view.v);
+	auto screen = world.get<canvas2d::Screen>();
+	if (!screen)
+	{
+		std::cout << "Screen is null!" << "\n";
+		return;
+	}
+
+	screen->canvas->setView(*viewComp.v);
 }
 
 void canvas2d::setup_canvas(flecs::world& world, ScreenDims& screenConfig)
