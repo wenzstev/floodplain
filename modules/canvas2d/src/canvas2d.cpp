@@ -29,6 +29,8 @@ canvas2d::canvas2d(flecs::world& world)
 		.member<float>("width")
 		.member<float>("height");
 
+	world.component<SFMLEvent>()
+		.member<sf::Event>("event");
 
 	world.component<Rotation>()
 		.member<float, flecs::units::angle>("angle");
@@ -106,6 +108,7 @@ void canvas2d::init_view(flecs::entity viewEnt, View& viewComp)
 	{
 		std::cout << "Screen is null!" << "\n";
 		return;
+
 	}
 
 	screen->canvas->setView(*viewComp.v);
@@ -115,6 +118,7 @@ void canvas2d::setup_canvas(flecs::world& world, ScreenDims& screenConfig)
 {
 	std::unique_ptr<sf::RenderWindow> window(new sf::RenderWindow(sf::VideoMode(screenConfig.xPixels, screenConfig.yPixels), screenConfig.screenName));
 	world.set<Screen>({ std::move(window) });
+	world.add<View>();
 
 	world.system<canvas2d::Screen>()
 		.each([](flecs::entity e, canvas2d::Screen& s)
@@ -122,18 +126,36 @@ void canvas2d::setup_canvas(flecs::world& world, ScreenDims& screenConfig)
 				sf::Event event;
 				bool hasEvent = s.canvas->pollEvent(event);
 				if (!hasEvent) return;
-				e.world().event<sf::Event>().entity(e).emit();
+				auto eventEnt = e.world().entity("EventEntity").set<SFMLEvent>({event});
+				e.world().event<sf::Event>().entity(eventEnt).emit();
 			});
 
-	world.observer()
+	world.observer<SFMLEvent, Screen>()
+		.term_at(2).singleton()
 		.with(flecs::Any)
 		.event<sf::Event>()
-		.each([](flecs::iter& it, size_t i)
+		.each([](flecs::iter& it, size_t i, SFMLEvent& sfml_evt, Screen& screen)
 			{
-				std::cout << it.entity(i).name() << " fired event. \n";
-				auto eve = it.event().get<sf::Event>();
-				std::cout << (eve->type == sf::Event::Closed) << "\n";
+				auto e = it.entity(i);
+				std::cout << e.name() << "\n";
+				if (sfml_evt.event.type == sf::Event::Closed)
+				{
+					screen.canvas->close();
+				}
 				
+			});
+
+	world.observer<SFMLEvent, View>()
+		.term_at(2).singleton()
+		.with(flecs::Any)
+		.event<sf::Event>()
+		.each([](flecs::iter& it, size_t i, SFMLEvent& sfml_evt, View& v)
+			{
+				if (sfml_evt.event.type == sf::Event::KeyPressed)
+				{
+					auto k = sfml_evt.event.key;
+					std::cout << "Key pressed: " << k.code << " \n";
+				}
 			});
 
 	world.system<canvas2d::Screen>()
@@ -142,6 +164,26 @@ void canvas2d::setup_canvas(flecs::world& world, ScreenDims& screenConfig)
 			{
 				s.canvas->display();
 			});
+
+	// using observer because I'm not sure how to do hooks with two components
+	world.observer<transform::Position2, transform::Position2, canvas2d::Screen, canvas2d::View>()
+		.term_at(1).second<ViewPos>()
+		.term_at(2).second<ViewScale>()
+		.term_at(3).singleton()
+		.term_at(4).singleton()
+		.event(flecs::OnSet)
+		.each([](flecs::iter& it, size_t i, transform::Position2& pos, transform::Position2& scale, Screen& screen, View& view)
+			{
+
+				std::unique_ptr<sf::View> viewPtr(new sf::View(
+					sf::Vector2f(pos.x, pos.y),
+					sf::Vector2f(scale.x, scale.y)));
+
+				view.v = std::move(viewPtr);
+				screen.canvas->setView(*view.v);
+			});
+
+
 }
 
 void canvas2d::setup_draw_phases(flecs::world& world)

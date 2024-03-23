@@ -57,8 +57,9 @@ struct canvas2d
 	
 
 	struct SFMLEvent {
-		sf::Event* event;
+		sf::Event event;
 	};
+
 
 
 	struct DrawnIn {};

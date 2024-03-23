@@ -67,9 +67,8 @@ int main(int, char* []) {
 
 	
 	auto camera = world.entity();
-	camera.set<canvas2d::ViewPos, transform::Position2>({ 350, 300 });
-	camera.set<canvas2d::ViewScale, transform::Position2>({ 300, 200 });
-	camera.add<canvas2d::View>();
+	camera.set<transform::Position2, canvas2d::ViewPos>({ 350, 300 });
+	camera.set<transform::Position2, canvas2d::ViewScale>({ 300, 200 });
 
 	flecs::entity wpressed = world.entity();
 	wpressed.add(sf::Keyboard::W);
@@ -77,37 +76,12 @@ int main(int, char* []) {
 	struct KeyEvent {};
 
 
-	flecs::entity thing = world.entity("Thing");
-
-	world.observer()
-		.with(flecs::Any)
-		.event<KeyEvent>()
-		.each([](flecs::iter& it, size_t i)
-			{
-				std::cout << it.entity(i).name() << " fired event. \n";
-			});
-
-	world.event<KeyEvent>().entity(thing).emit();
-
-	
 	struct InputState
 	{
 		bool PressedKeys[sf::Keyboard::KeyCount];
 		//std::vector<bool> PressedKeys(32); // vectors the length of the pressed keys?
 	};
 
-	world.system()
-		.iter([](flecs::iter& it)
-			{
-
-				if (sf::Keyboard::isKeyPressed(sf::Keyboard::W))
-				{
-					it.world().event<KeyEvent>().emit();
-				}
-				
-
-			});
-		
 	//world.set_threads(12);
 	return world.app().enable_rest().run();
 
