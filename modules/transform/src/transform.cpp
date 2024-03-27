@@ -14,6 +14,9 @@ transform::transform(flecs::world& world) {
 		.member<float>("Blue")
 		.member<float>("Alpha");
 
+	world.component<Rotation>()
+		.member<float>("Angle");
+
 
 
 	world.system<const transform::Position2, const transform::Position2, transform::Position2>()

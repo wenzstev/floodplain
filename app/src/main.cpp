@@ -7,6 +7,9 @@
 #include <SFML/Graphics.hpp>
 #include "grid.h"
 #include "canvas2d.h"
+#include "display.h"
+#include "input_processing.h"
+#include "rendering.h"
 #include "transform.h"
 #include "agents.h"
 
@@ -16,17 +19,17 @@ int main(int, char* []) {
 	flecs::world world;
 
 	world.import<transform>();
-	world.import<canvas2d>();
+	world.import<canvas2d::module>();
 	world.import<grid_module>();
 	world.import<agents>();
 	world.import<flecs::monitor>();
 
 	flecs::entity screenDims = world.entity()
-		.set<canvas2d::ScreenDims>({ 1400, 1000, "Window in flecs" });
+		.set<canvas2d::display::ScreenDims>({ 1400, 1000, "Window in flecs" });
 
 	auto gridPrefab = world.prefab("Rect")
-		.set<canvas2d::Rectangle>({ 30, 30 })
-		.add<canvas2d::DrawnIn, canvas2d::Background>()
+		.set<canvas2d::rendering::Rectangle>({ 30, 30 })
+		.add<canvas2d::rendering::DrawnIn, canvas2d::rendering::Background>()
 		.set<agents::CarryingCapacity>({ 20});
 
 	flecs::entity g = world.entity("Grid")
@@ -67,22 +70,81 @@ int main(int, char* []) {
 
 	
 	auto camera = world.entity();
-	camera.set<transform::Position2, canvas2d::ViewPos>({ 350, 300 });
-	camera.set<transform::Position2, canvas2d::ViewScale>({ 300, 200 });
+	camera.set<transform::Position2, canvas2d::display::ViewPos>({ 350, 300 });
+	camera.set<transform::Position2, canvas2d::display::ViewScale>({ 300, 200 });
 
-	flecs::entity wpressed = world.entity();
-	wpressed.add(sf::Keyboard::W);
+	world.system<canvas2d::display::View, canvas2d::input_processing::InputState, canvas2d::display::Screen>("CameraMove")
+		.term_at(1).singleton()
+		.term_at(2).singleton()
+		.each([](flecs::iter& it, size_t i, canvas2d::display::View& v, canvas2d::input_processing::InputState& inputState, canvas2d::display::Screen& screen)
+			{
+				float moveAmount = 10.f;
+				sf::Vector2f moveVec {0, 0};
+				if (inputState.PressedKeys[sf::Keyboard::W])
+				{
+					moveVec.y -= moveAmount;
+				}
+				if (inputState.PressedKeys[sf::Keyboard::A])
+				{
+					moveVec.x -= moveAmount;
+				}
+				if (inputState.PressedKeys[sf::Keyboard::S])
+				{
+					moveVec.y += moveAmount;
+				}
+				if (inputState.PressedKeys[sf::Keyboard::D])
+				{
+					moveVec.x += moveAmount;
+				}
+				v.v->move(moveVec);
+				screen.canvas->setView(*v.v);
+			});
 
-	struct KeyEvent {};
 
+	world.system<canvas2d::display::View, canvas2d::input_processing::InputState, canvas2d::display::Screen>("CameraZoom")
+		.term_at(1).singleton()
+		.term_at(2).singleton()
+		.each([](flecs::iter& it, size_t i, canvas2d::display::View& v, canvas2d::input_processing::InputState& inputState, canvas2d::display::Screen& screen)
+			{
+				float zoomAmount = 2;
+				if (inputState.PressedKeys[sf::Keyboard::Q])
+				{
+					v.v->zoom(1.2);
+					screen.canvas->setView(*v.v);
+				}
+				if (inputState.PressedKeys[sf::Keyboard::E])
+				{
+					v.v->zoom(0.8);
+					screen.canvas->setView(*v.v);
+				}
+			});
 
-	struct InputState
-	{
-		bool PressedKeys[sf::Keyboard::KeyCount];
-		//std::vector<bool> PressedKeys(32); // vectors the length of the pressed keys?
-	};
+	world.system<canvas2d::input_processing::InputState, canvas2d::display::Screen, canvas2d::rendering::Rectangle>("Display agents when square is clicked")
+		.term_at(1).singleton()
+		.term_at(2).singleton()
+		.each([](flecs::iter& it, size_t i, canvas2d::input_processing::InputState& inputState, canvas2d::display::Screen& camera, canvas2d::rendering::Rectangle rect)
+			{
+				// if click happened
+				//		determine if click happened on a square
+				//		get the children of that square
+				//		cout the children
 
-	//world.set_threads(12);
+				if (!inputState.MouseButtonPressed[sf::Mouse::Left]) return;
+				std::cout << "Clicking!" << "\n";
+				auto mousePos = inputState.CursorLocation;
+				sf::Vector2i point = { mousePos.x, mousePos.y };
+				auto mouseWorldPos = camera.canvas->mapPixelToCoords(point);
+				sf::RectangleShape rs = sf::RectangleShape(sf::Vector2(rect.height, rect.width));
+				std::cout << "Checking " << point.x << " " << point.y << " against " << rect.height << " " << rect.width << "\n";
+				if (rs.getGlobalBounds().contains(mouseWorldPos))
+				{
+					std::cout << "clicked on shape!" << "\n";
+				}
+
+				 
+			});
+
+	world.set_threads(12);
 	return world.app().enable_rest().run();
 
 }

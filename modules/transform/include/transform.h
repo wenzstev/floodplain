@@ -7,6 +7,10 @@ struct transform
 		float x, y;
 	};
 
+	struct Rotation {
+		float angle;
+	};
+
 	struct Color
 	{
 		float r;

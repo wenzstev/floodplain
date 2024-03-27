@@ -1,5 +1,5 @@
 
-set(SOURCE_FILES src/canvas2d.cpp)
+set(SOURCE_FILES src/canvas2d.cpp src/display.cpp src/input_processing.cpp src/rendering.cpp)
 
 add_library(canvas2d STATIC ${SOURCE_FILES})
 target_link_libraries(canvas2d flecs::flecs_static sfml-graphics transform)
