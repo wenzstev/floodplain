@@ -119,33 +119,33 @@ int main(int, char* []) {
 				}
 			});
 
-	bool isClicked(const transform::Position2& pos, const canvas2d::rendering::Rectangle& rect, const sf::Vector2f& clickPos) {
+	auto isClicked = ([](const transform::Position2& pos, const canvas2d::rendering::Rectangle& rect, const sf::Vector2f& clickPos) {
 		return clickPos.x >= pos.x && clickPos.x <= (pos.x + rect.width) &&
 			clickPos.y >= pos.y && clickPos.y <= (pos.y + rect.height);
-	}
+		});
 
 	world.system<canvas2d::input_processing::InputState, canvas2d::display::Screen, canvas2d::rendering::Rectangle, transform::Position2>("Display agents when square is clicked")
 		.term_at(1).singleton()
 		.term_at(2).singleton()
+		.term_at(4).second<transform::World>()
 		.each([isClicked](flecs::iter& it, size_t i, canvas2d::input_processing::InputState& inputState, canvas2d::display::Screen& camera, canvas2d::rendering::Rectangle& rect, transform::Position2& pos)
 			{
+				std::cout << "clicking " << rect.width << " " << rect.height << "\n";
+
 				// if click happened
 				//		determine if click happened on a square
 				//		get the children of that square
 				//		cout the children
 
 				if (!inputState.MouseButtonPressed[sf::Mouse::Left]) return;
-				std::cout << "Clicking!" << "\n";
+				std::cout << "clicking " << rect.width << " " << rect.height << "\n";
+
 				auto mousePos = inputState.CursorLocation;
 				sf::Vector2i point = { mousePos.x, mousePos.y };
 				auto mouseWorldPos = camera.canvas->mapPixelToCoords(point);
-
-
-				sf::RectangleShape rs = sf::RectangleShape(sf::Vector2(rect.height, rect.width));
-				std::cout << "Checking " << point.x << " " << point.y << " against " << rect.height << " " << rect.width << "\n";
-				if (rs.getGlobalBounds().contains(mouseWorldPos))
+				if (isClicked(pos, rect, mouseWorldPos))
 				{
-					std::cout << "clicked on shape!" << "\n";
+					std::cout << "clicked on" << rect.width << " " << rect.height << "\n";
 				}
 
 				 

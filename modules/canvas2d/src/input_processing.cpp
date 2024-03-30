@@ -13,6 +13,7 @@ input_processing::module::module(flecs::world& world)
 		.member<int>("Y");
 
 	world.system<display::Screen, InputState>()
+		.kind(flecs::OnLoad)
 		.term_at(1).singleton()
 		.term_at(2).singleton()
 		.each(process_sfml_events);
@@ -60,8 +61,8 @@ void input_processing::module::process_input_events(sf::Event event, InputState&
 		inputState.MouseButtonPressed[event.mouseButton.button] = false;
 		break;
 	case sf::Event::MouseMoved:
-		inputState.CursorLocation.x = event.mouseButton.x;
-		inputState.CursorLocation.y = event.mouseButton.y;
+		inputState.CursorLocation.x = event.mouseMove.x;
+		inputState.CursorLocation.y = event.mouseMove.y;
 		break;
 	default:
 		break;
