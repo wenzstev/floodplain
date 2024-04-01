@@ -1,7 +1,7 @@
 
 add_executable(flecs_console src/main.cpp   )
 
-target_link_libraries(flecs_console PRIVATE agents grid canvas2d transform flecs::flecs_static sfml-graphics tgui)
+target_link_libraries(flecs_console PRIVATE agents grid canvas2d transform maputils flecs::flecs_static sfml-graphics tgui)
 target_compile_features(flecs_console PRIVATE cxx_std_17)
 
 
@@ -10,6 +10,7 @@ target_include_directories(flecs_console PRIVATE
     ../modules/canvas2d/include
     ../modules/transform/include
     ../modules/agents/include
+    ../modules/maputils/include
 )
 
 if(WIN32)
