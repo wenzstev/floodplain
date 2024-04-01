@@ -39,8 +39,6 @@ display::module::module(flecs::world& world)
 				view.v = std::move(viewPtr);
 				screen.canvas->setView(*view.v);
 			});
-
-
 }
 
 void display::module::setup_canvas(flecs::entity screen, ScreenDims& screenConfig)
@@ -50,7 +48,7 @@ void display::module::setup_canvas(flecs::entity screen, ScreenDims& screenConfi
 	world.set<Screen>({ std::move(window) });
 	world.add<View>();
 
-	world.system<Screen>()
+	world.system<Screen>("DisplayCanvas")
 		.kind(flecs::OnStore)
 		.each([](flecs::entity e, Screen& s)
 			{
@@ -58,7 +56,7 @@ void display::module::setup_canvas(flecs::entity screen, ScreenDims& screenConfi
 			});
 
 
-	world.system<Screen>()
+	world.system<Screen>("ClearCanvas")
 		.kind(flecs::PreUpdate)
 		.each([](flecs::entity e, Screen& s)
 			{

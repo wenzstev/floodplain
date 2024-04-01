@@ -1,6 +1,7 @@
 #include <flecs.h>
 #include "input_processing.h"
 #include "display.h"
+#include "gui.h"
 
 using namespace canvas2d;
 
@@ -24,8 +25,11 @@ input_processing::module::module(flecs::world& world)
 void canvas2d::input_processing::module::process_sfml_events(flecs::iter& it, size_t i, display::Screen& screen, InputState& inputState)
 {
 	sf::Event event;
+	auto guiSingleton = it.world().get<gui::GUI>();
 	while (screen.canvas->pollEvent(event))
 	{
+		if (guiSingleton) guiSingleton->gui->handleEvent(event);
+
 		switch (event.type)
 		{
 		case sf::Event::Closed:

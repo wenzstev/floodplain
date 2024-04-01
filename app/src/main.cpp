@@ -4,9 +4,12 @@
 #include <thread>
 #include <random>
 #include <filesystem>
+#include <TGUI/TGUI.hpp>
+#include <TGUI/Backend/SFML-Graphics.hpp>
 #include <SFML/Graphics.hpp>
 #include "grid.h"
 #include "canvas2d.h"
+#include "gui.h"
 #include "display.h"
 #include "input_processing.h"
 #include "rendering.h"
@@ -130,7 +133,6 @@ int main(int, char* []) {
 		.term_at(4).second<transform::World>()
 		.each([isClicked](flecs::iter& it, size_t i, canvas2d::input_processing::InputState& inputState, canvas2d::display::Screen& camera, canvas2d::rendering::Rectangle& rect, transform::Position2& pos)
 			{
-				std::cout << "clicking " << rect.width << " " << rect.height << "\n";
 
 				// if click happened
 				//		determine if click happened on a square
@@ -138,18 +140,28 @@ int main(int, char* []) {
 				//		cout the children
 
 				if (!inputState.MouseButtonPressed[sf::Mouse::Left]) return;
-				std::cout << "clicking " << rect.width << " " << rect.height << "\n";
 
 				auto mousePos = inputState.CursorLocation;
 				sf::Vector2i point = { mousePos.x, mousePos.y };
 				auto mouseWorldPos = camera.canvas->mapPixelToCoords(point);
 				if (isClicked(pos, rect, mouseWorldPos))
 				{
-					std::cout << "clicked on" << rect.width << " " << rect.height << "\n";
+					auto e = it.entity(i);
+					e.children([](flecs::entity child)
+						{
+							auto agent = child.get<agents::Agent>();
+							if (!agent) return;
+							std::cout << child.name() << " " << agent->color.r << " " << agent->color.g << " " << agent->color.b << "\n";
+						});
 				}
-
-				 
 			});
+
+	world.add<canvas2d::gui::GUI>();
+
+	auto buttonEnt = world.entity("Button")
+		.set<canvas2d::gui::Button>({ "Test button" });
+
+	
 
 	world.set_threads(12);
 	return world.app().enable_rest().run();

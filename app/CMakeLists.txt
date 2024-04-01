@@ -1,7 +1,7 @@
 
 add_executable(flecs_console src/main.cpp   )
 
-target_link_libraries(flecs_console PRIVATE agents grid canvas2d transform flecs::flecs_static sfml-graphics)
+target_link_libraries(flecs_console PRIVATE agents grid canvas2d transform flecs::flecs_static sfml-graphics tgui)
 target_compile_features(flecs_console PRIVATE cxx_std_17)
 
 

@@ -20,14 +20,27 @@ FetchContent_Declare(
 )
 FetchContent_MakeAvailable(flecs)
 
-FetchContent_Declare(SFML 
+FetchContent_Declare(
+	SFML 
 	GIT_REPOSITORY https://github.com/SFML/SFML.git 
-	GIT_TAG 2.6.x)
+	GIT_TAG 2.6.x
+)
+
+FetchContent_MakeAvailable(SFML)
+
+set (TGUI_BACKEND "SFML_GRAPHICS" CACHE STRING "Set TGUI Backend to SFML_GRAPHICS" FORCE)
+
+FetchContent_Declare(
+	TGUI 
+	GIT_REPOSITORY https://github.com/texus/TGUI.git
+	GIT_TAG v1.2.0
+)	
+
+FetchContent_MakeAvailable(TGUI)
 
 # Set the option for static linking
 set(SFML_BUILD_SHARED_LIBS OFF CACHE BOOL "" FORCE)
 
-FetchContent_MakeAvailable(SFML)
 
 
 # Include sub-projects.
