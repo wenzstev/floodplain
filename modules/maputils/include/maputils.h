@@ -3,8 +3,8 @@
 
 namespace maputils
 {
-	struct module
+	struct cameracontrols
 	{
-		module(flecs::world& world);
+		cameracontrols(flecs::world& world);
 	};
 }

@@ -3,7 +3,7 @@
 #include "input_processing.h"
 
 
-maputils::module::module(flecs::world& world)
+maputils::cameracontrols::cameracontrols(flecs::world& world)
 {
 	world.system<canvas2d::display::View, canvas2d::input_processing::InputState, canvas2d::display::Screen>("CameraMove")
 		.term_at(1).singleton()

@@ -27,7 +27,7 @@ int main(int, char* []) {
 	world.import<grid_module>();
 	world.import<agents>();
 	world.import<flecs::monitor>();
-	world.import<maputils::module>();
+	world.import<maputils::cameracontrols>();
 
 	flecs::entity screenDims = world.entity()
 		.set<canvas2d::display::ScreenDims>({ 1400, 1000, "Window in flecs" });
@@ -79,8 +79,6 @@ int main(int, char* []) {
 	camera.set<transform::Position2, canvas2d::display::ViewScale>({ 300, 200 });
 
 
-
-
 	auto isClicked = ([](const transform::Position2& pos, const canvas2d::rendering::Rectangle& rect, const sf::Vector2f& clickPos) {
 		return clickPos.x >= pos.x && clickPos.x <= (pos.x + rect.width) &&
 			clickPos.y >= pos.y && clickPos.y <= (pos.y + rect.height);
@@ -92,11 +90,6 @@ int main(int, char* []) {
 		.term_at(4).second<transform::World>()
 		.each([isClicked](flecs::iter& it, size_t i, canvas2d::input_processing::InputState& inputState, canvas2d::display::Screen& camera, canvas2d::rendering::Rectangle& rect, transform::Position2& pos)
 			{
-
-				// if click happened
-				//		determine if click happened on a square
-				//		get the children of that square
-				//		cout the children
 
 				if (!inputState.MouseButtonPressed[sf::Mouse::Left]) return;
 
@@ -118,7 +111,12 @@ int main(int, char* []) {
 	world.add<canvas2d::gui::GUI>();
 
 	auto buttonEnt = world.entity("Button")
-		.set<canvas2d::gui::Button>({ "Test button" });
+		.set<canvas2d::gui::TString>({"Test button"})
+		.set<canvas2d::gui::Button>({ "test-button-id" });
+
+	auto labelEnt = world.entity("Label")
+		.set<canvas2d::gui::TString>({ "Test label" })
+		.set<canvas2d::gui::Label>({ "label-id" });
 
 	
 

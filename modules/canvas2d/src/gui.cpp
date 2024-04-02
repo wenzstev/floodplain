@@ -1,5 +1,6 @@
 #include "gui.h"
 #include "display.h"
+#include "transform.h"
 
 using namespace canvas2d;
 
@@ -10,8 +11,10 @@ gui::module::module(flecs::world& world)
 		.member<std::unique_ptr<tgui::Gui>>("gui");
 
 	world.component<gui::Button>()
-		.on_set(setup_button)
-		.member<tgui::String>("Title");
+		.on_set(setup_button);
+
+	world.component<gui::Label>()
+		.on_set(setup_label);
 }
 
 void gui::module::setup_gui(flecs::entity ent, gui::GUI& gui)
@@ -48,16 +51,42 @@ void gui::module::setup_gui(flecs::entity ent, gui::GUI& gui)
 void gui::module::setup_button(flecs::entity ent, gui::Button& button)
 {
 	auto world = ent.world();
-	auto gui = world.get<gui::GUI>();
+	auto gui = get_gui(world);
+
+	auto text = ent.get<TString>();
+
+	auto layout = ent.get_second<Layout, TString>();
+	
+
+
+	tgui::Button::Ptr newButton = tgui::Button::create(text ? text->text : "");
+	gui->gui->add(newButton, button.id);
+	std::cout << "Created button!";
+}
+
+void gui::module::setup_label(flecs::entity ent, gui::Label& label)
+{
+	auto world = ent.world();
+	auto gui = get_gui(world);
+
+	auto text = ent.get<TString>();
+
+	tgui::Label::Ptr newLabel = tgui::Label::create(text ? text->text : "");
+	gui->gui->add(newLabel, label.id);
+	std::cout << "Created label!";
+}
+
+const gui::GUI* gui::module::get_gui(flecs::world& world)
+{
+	const gui::GUI* gui = world.get<gui::GUI>();
 	if (!gui)
 	{
-		std::cout << "Need to create a gui before adding a button! \n";
-		return;
+		throw std::runtime_error("Need to create a gui before adding GUI components!");
 	}
+	return gui;
+}
 
-	tgui::Button::Ptr newButton = tgui::Button::create(button.title);
-	gui->gui->add(newButton, button.title);
-	std::cout << "Created button!";
-
+std::variant <gui::TString, std::pair<gui::TString, gui::TString>> gui::module::get_layout_info(flecs::entity ent)
+{
 
 }
