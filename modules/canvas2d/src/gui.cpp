@@ -55,7 +55,6 @@ void gui::module::setup_button(flecs::entity ent, gui::Button& button)
 
 	auto text = ent.get<TString>();
 
-	auto layout = ent.get_second<Layout, TString>();
 	
 
 
@@ -86,7 +85,11 @@ const gui::GUI* gui::module::get_gui(flecs::world& world)
 	return gui;
 }
 
-std::variant <gui::TString, std::pair<gui::TString, gui::TString>> gui::module::get_layout_info(flecs::entity ent)
+std::variant <const gui::TString*, std::pair<const gui::TString*, const gui::TString*>> gui::module::get_layout_info(flecs::entity ent)
 {
+	auto layout = ent.get_second<Layout, TString>();
+	if (layout) return layout;
+	
+	
 
 }
