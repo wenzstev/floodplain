@@ -43,7 +43,7 @@ namespace canvas2d
 			static void setup_label(flecs::entity ent, gui::Label& label);
 			
 			static const GUI* get_gui(flecs::world& world);
-			static std::variant < TString, std::pair<TString, TString>> get_layout_info(flecs::entity ent);
+			static std::variant <std::string, std::pair<std::string, std::string>> get_layout_info(flecs::entity ent);
 		};
 
 

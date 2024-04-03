@@ -1,3 +1,4 @@
+#include <variant>
 #include "gui.h"
 #include "display.h"
 #include "transform.h"
@@ -55,10 +56,19 @@ void gui::module::setup_button(flecs::entity ent, gui::Button& button)
 
 	auto text = ent.get<TString>();
 
-	
-
-
 	tgui::Button::Ptr newButton = tgui::Button::create(text ? text->text : "");
+
+	auto result = get_layout_info(ent);
+	std::visit([newButton](auto&& arg) {
+		using T = std::decay_t<decltype(arg)>;
+		if constexpr (std::is_same_v<T, std::string>) {
+			newButton->setPosition(arg);
+		}
+		else if constexpr (std::is_same_v<T, std::pair<std::string, std::string>>) {
+			newButton->setPosition({arg})
+		}
+		}, result);
+
 	gui->gui->add(newButton, button.id);
 	std::cout << "Created button!";
 }
@@ -85,11 +95,15 @@ const gui::GUI* gui::module::get_gui(flecs::world& world)
 	return gui;
 }
 
-std::variant <const gui::TString*, std::pair<const gui::TString*, const gui::TString*>> gui::module::get_layout_info(flecs::entity ent)
+std::variant <std::string, std::pair<std::string, std::string>> get_layout_info(flecs::entity ent)
 {
-	auto layout = ent.get_second<Layout, TString>();
-	if (layout) return layout;
-	
-	
+	auto layout = ent.get_second<gui::Layout, gui::TString>();
+	if (layout) return layout->text.toStdString();
 
+	auto layoutX = ent.get_second<gui::LayoutX, gui::TString>();
+	auto layoutY = ent.get_second<gui::LayoutY, gui::TString>();
+
+	auto stringOrBlank = [](const gui::TString* ptr) {return ptr ? ptr->text.toStdString() : "";};
+
+	return std::make_pair(stringOrBlank(layoutX), stringOrBlank(layoutY));
 }
