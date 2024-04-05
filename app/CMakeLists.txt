@@ -1,5 +1,5 @@
 
-add_executable(flecs_console src/main.cpp   )
+add_executable(flecs_console src/main.cpp)
 
 target_link_libraries(flecs_console PRIVATE agents grid canvas2d transform maputils flecs::flecs_static sfml-graphics tgui)
 target_compile_features(flecs_console PRIVATE cxx_std_17)
@@ -22,3 +22,8 @@ if(WIN32)
 endif()
 
 install(TARGETS flecs_console)
+
+add_custom_command(TARGET flecs_console POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy
+    ${CMAKE_SOURCE_DIR}/app/src/gui.flecs
+    $<TARGET_FILE_DIR:flecs_console>/gui.flecs)

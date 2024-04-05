@@ -11,11 +11,13 @@ gui::module::module(flecs::world& world)
 		.on_add(setup_gui)
 		.member<std::unique_ptr<tgui::Gui>>("gui");
 
-	world.component<gui::Button>()
-		.on_set(setup_button);
+	world.component<gui::ID>()
+		.on_set(setup_widget)
+		.member<std::string>("ID");
 
-	world.component<gui::Label>()
-		.on_set(setup_label);
+	world.component<gui::Text>()
+		.member<std::string>("text");
+
 }
 
 void gui::module::setup_gui(flecs::entity ent, gui::GUI& gui)
@@ -49,41 +51,33 @@ void gui::module::setup_gui(flecs::entity ent, gui::GUI& gui)
 	std::cout << "Created gui!";
 }
 
-void gui::module::setup_button(flecs::entity ent, gui::Button& button)
+void gui::module::setup_widget(flecs::entity ent, gui::ID& id)
 {
 	auto world = ent.world();
 	auto gui = get_gui(world);
 
-	auto text = ent.get<TString>();
+	auto text = ent.get<Text>();
 
-	tgui::Button::Ptr newButton = tgui::Button::create(text ? text->text : "");
+	auto type = ent.get<gui::WidgetType>();
+	std::shared_ptr<tgui::Widget> widget;
+	if (!type) return;
+	switch (type[0])
+	{
+	case Button:
+		widget = tgui::Button::create(text ? text->text : "");
+		break;
+	case Label:
+		widget = tgui::Label::create(text ? text->text : "");
+		break;
+	default:
+		break;
+	}
 
-	auto result = get_layout_info(ent);
-	std::visit([newButton](auto&& arg) {
-		using T = std::decay_t<decltype(arg)>;
-		if constexpr (std::is_same_v<T, std::string>) {
-			newButton->setPosition(arg);
-		}
-		else if constexpr (std::is_same_v<T, std::pair<std::string, std::string>>) {
-			newButton->setPosition({arg})
-		}
-		}, result);
-
-	gui->gui->add(newButton, button.id);
-	std::cout << "Created button!";
-}
-
-void gui::module::setup_label(flecs::entity ent, gui::Label& label)
-{
-	auto world = ent.world();
-	auto gui = get_gui(world);
-
-	auto text = ent.get<TString>();
-
-	tgui::Label::Ptr newLabel = tgui::Label::create(text ? text->text : "");
-	gui->gui->add(newLabel, label.id);
+	set_layout(widget, ent);
+	gui->gui->add(widget, id.id);
 	std::cout << "Created label!";
 }
+
 
 const gui::GUI* gui::module::get_gui(flecs::world& world)
 {
@@ -95,15 +89,27 @@ const gui::GUI* gui::module::get_gui(flecs::world& world)
 	return gui;
 }
 
-std::variant <std::string, std::pair<std::string, std::string>> get_layout_info(flecs::entity ent)
+void gui::module::set_layout(std::shared_ptr<tgui::Widget> w, flecs::entity e)
 {
-	auto layout = ent.get_second<gui::Layout, gui::TString>();
-	if (layout) return layout->text.toStdString();
+	auto result = get_layout_info(e);
+	std::visit([w](auto&& arg) {
+		using T = std::decay_t<decltype(arg)>;
+		if constexpr (std::is_same_v<T, std::string>) {
+			w->setPosition({ arg });
+		}
+		else if constexpr (std::is_same_v<T, std::pair<std::string, std::string>>) {
+			w->setPosition({ arg.first }, { arg.second });
+		}
+		}, result);
+}
 
-	auto layoutX = ent.get_second<gui::LayoutX, gui::TString>();
-	auto layoutY = ent.get_second<gui::LayoutY, gui::TString>();
+std::variant <std::string, std::pair<std::string, std::string>> gui::module::get_layout_info(flecs::entity ent)
+{
+	auto layout = ent.get<gui::Layout>();
+	if (layout) return layout->text;
 
-	auto stringOrBlank = [](const gui::TString* ptr) {return ptr ? ptr->text.toStdString() : "";};
+	auto layoutX = ent.get<LayoutX>();
+	auto layoutY = ent.get<LayoutY>();
 
-	return std::make_pair(stringOrBlank(layoutX), stringOrBlank(layoutY));
+	return std::make_pair(layoutX ? layoutX->text : "", layoutY ? layoutY->text : "");
 }

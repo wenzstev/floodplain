@@ -1,0 +1,9 @@
+using canvas2d.gui
+
+Button {
+	- Button
+	- Text: "Changed from plecs"
+	- LayoutX: "50%"
+	- LayoutY: "30%"
+	- id: "testID"
+}

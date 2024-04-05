@@ -110,13 +110,21 @@ int main(int, char* []) {
 
 	world.add<canvas2d::gui::GUI>();
 
+	ecs_plecs_from_file(world, "gui.flecs");
+
+
 	auto buttonEnt = world.entity("Button")
-		.set<canvas2d::gui::TString>({"Test button"})
-		.set<canvas2d::gui::Button>({ "test-button-id" });
+		.add(canvas2d::gui::Button)
+		.set<canvas2d::gui::Text>({ "Test button" })
+		.set<canvas2d::gui::LayoutX>({ "50%" })
+		.set<canvas2d::gui::LayoutY>({ "10%" })
+		.set<canvas2d::gui::ID>({ "test-button-id" });
 
 	auto labelEnt = world.entity("Label")
-		.set<canvas2d::gui::TString>({ "Test label" })
-		.set<canvas2d::gui::Label>({ "label-id" });
+		.add(canvas2d::gui::Label)
+		.set<canvas2d::gui::Text>({ "Test label" })
+		.set<canvas2d::gui::ID>({ "label-id" });
+
 
 	
 
