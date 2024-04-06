@@ -11,12 +11,24 @@ gui::module::module(flecs::world& world)
 		.on_add(setup_gui)
 		.member<std::unique_ptr<tgui::Gui>>("gui");
 
+	world.component<std::string>()
+		.opaque(flecs::String)
+		.serialize([](const flecs::serializer* s, const std::string* data) {
+			const char* str = data->c_str();
+			return s->value(flecs::String, &str);
+			})
+		.assign_string([](std::string* data, const char* value) {
+				*data = value;
+			});
+
+	world.component<gui::Text>()
+		.member<std::string>("text");
+
+
 	world.component<gui::ID>()
 		.on_set(setup_widget)
 		.member<std::string>("ID");
 
-	world.component<gui::Text>()
-		.member<std::string>("text");
 
 }
 

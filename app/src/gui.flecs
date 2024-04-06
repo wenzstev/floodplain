@@ -1,9 +1,11 @@
 using canvas2d.gui
+using flecs.meta
+
 
 Button {
-	- Button
-	- Text: "Changed from plecs"
-	- LayoutX: "50%"
-	- LayoutY: "30%"
-	- id: "testID"
+	- canvas2d.gui.Button
+	- module.Text {"? from plecs"}
+	- LayoutX { "50%"}
+	- LayoutY { "30%" }
+	- id { "testID"}
 }

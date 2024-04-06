@@ -14,19 +14,22 @@ namespace canvas2d
 			std::unique_ptr<tgui::Gui> gui;
 		};
 
-
 		struct LayoutX {
 			std::string text;
 		};
+
 		struct LayoutY {
 			std::string text;
 		};
+
 		struct Layout {
 			std::string text;
 		};
+
 		struct ID {
 			std::string id;
 		};
+
 		struct Text
 		{
 			std::string text;
