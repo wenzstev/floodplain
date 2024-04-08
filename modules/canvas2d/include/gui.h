@@ -35,9 +35,12 @@ namespace canvas2d
 			std::string text;
 		};
 
+		struct Size {};
+
 		enum WidgetType {
 			Button,
-			Label
+			Label,
+			Panel
 		};
 
 
@@ -52,6 +55,8 @@ namespace canvas2d
 			static const GUI* get_gui(flecs::world& world);
 			static std::variant <std::string, std::pair<std::string, std::string>> get_layout_info(flecs::entity ent);
 			static void set_layout(std::shared_ptr<tgui::Widget> w, flecs::entity e);
+
+			static std::shared_ptr<tgui::Widget> map_widget(const WidgetType& type);
 		};
 
 

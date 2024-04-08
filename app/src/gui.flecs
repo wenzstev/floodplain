@@ -1,11 +1,29 @@
-using canvas2d.gui
+using canvas2d.gui.module
+using transform
 using flecs.meta
 
 
-Button {
-	- canvas2d.gui.Button
-	- module.Text {"? from plecs"}
-	- LayoutX { "50%"}
-	- LayoutY { "30%" }
-	- id { "testID"}
+CurrentTilePanel {
+	- (WidgetType, Panel)
+	- ID {"plecs-label"}
+	- LayoutX {"5%"}
+	- LayoutY {"5%"}
+	- (Position2, Size) {200, 100}
 }
+
+AvgColorLabel {
+	- (WidgetType, Label)
+	- ID {"avg-color-tile"}
+	- LayoutX {"7%"}
+	- LayoutY {"6%"}
+	- Text {"No tile selected"}
+}
+
+PopulationLabel {
+	- (WidgetType, Label)
+	- ID {"population-label"}
+	- LayoutX {"7%"}
+	- LayoutY {"9%"}
+	- Text {"No tile selected."}
+}
+

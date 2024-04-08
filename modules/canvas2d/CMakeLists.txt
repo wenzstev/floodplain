@@ -1,7 +1,7 @@
 
-set(SOURCE_FILES src/canvas2d.cpp src/display.cpp src/input_processing.cpp src/rendering.cpp src/gui.cpp)
+set(SOURCE_FILES src/canvas2d.cpp src/display.cpp src/input_processing.cpp src/rendering.cpp "src/gui/gui.cpp")
 
-add_library(canvas2d STATIC ${SOURCE_FILES})
+add_library(canvas2d STATIC ${SOURCE_FILES} "src/gui/set_widget.cpp")
 target_link_libraries(canvas2d flecs::flecs_static sfml-graphics transform tgui)
 
 target_include_directories(canvas2d PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include ../transform/include)

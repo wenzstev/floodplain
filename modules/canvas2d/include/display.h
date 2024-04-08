@@ -23,7 +23,7 @@ namespace canvas2d
 		{
 			std::unique_ptr<sf::View> v;
 		};
-
+		 
 		struct ViewPos {};
 		struct ViewScale {};
 

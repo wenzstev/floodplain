@@ -59,6 +59,9 @@ int main(int, char* []) {
 		});
 	world.defer_end();
 
+	world.add<canvas2d::gui::GUI>();
+
+
 
 	flecs::entity cellA = world.lookup("Grid::Cell 1 10");
 	flecs::entity cellB = world.lookup("Grid::Cell 20 1");
@@ -84,6 +87,40 @@ int main(int, char* []) {
 			clickPos.y >= pos.y && clickPos.y <= (pos.y + rect.height);
 		});
 
+	
+	struct DisplaysColor {};
+	struct DisplaysPop {};
+
+	world.component<DisplaysColor>().add(flecs::Exclusive);
+	world.component<DisplaysPop>().add(flecs::Exclusive);
+
+
+	world.system<canvas2d::gui::Text>()
+		.with<DisplaysColor>(flecs::Wildcard)
+		.each([](flecs::iter& it, size_t i, canvas2d::gui::Text& text)
+			{
+				auto displayCell = it.entity(i).target<DisplaysColor>();
+				auto color = displayCell.get<transform::Color>();
+				if (!color) return;
+				it.entity(i).set<canvas2d::gui::Text>({ "Avg color: " + std::to_string(color->r) + ", " + std::to_string(color->g) + ", " + std::to_string(color->b) }); // works
+			});
+
+	world.system<canvas2d::gui::Text>()
+		.with<DisplaysPop>(flecs::Wildcard)
+		.each([](flecs::iter& it, size_t i, canvas2d::gui::Text& text)
+			{
+				auto displayCell = it.entity(i).target<DisplaysPop>(); 
+				int agentCount = 0;
+				displayCell.children([&agentCount](flecs::entity child)
+					{
+						auto agent = child.get<agents::Agent>();
+						if (!agent) return;
+						agentCount++;
+					});
+				it.entity(i).set<canvas2d::gui::Text>({ "Agent count: " + std::to_string(agentCount) }); // works
+
+			});
+
 	world.system<canvas2d::input_processing::InputState, canvas2d::display::Screen, canvas2d::rendering::Rectangle, transform::Position2>("Display agents when square is clicked")
 		.term_at(1).singleton()
 		.term_at(2).singleton()
@@ -99,32 +136,15 @@ int main(int, char* []) {
 				if (isClicked(pos, rect, mouseWorldPos))
 				{
 					auto e = it.entity(i);
-					e.children([](flecs::entity child)
-						{
-							auto agent = child.get<agents::Agent>();
-							if (!agent) return;
-							std::cout << child.name() << " " << agent->color.r << " " << agent->color.g << " " << agent->color.b << "\n";
-						});
+					auto PopulationLabel = it.world().lookup("PopulationLabel");
+					PopulationLabel.add<DisplaysPop>(e);
+					auto AvgColorLabel = it.world().lookup("AvgColorLabel");
+					AvgColorLabel.add<DisplaysColor>(e);
 				}
 			});
 
-	world.add<canvas2d::gui::GUI>();
 
 	ecs_plecs_from_file(world, "gui.flecs");
-
-
-	auto buttonEnt = world.entity("Button")
-		.add(canvas2d::gui::Button)
-		.set<canvas2d::gui::Text>({ "Test button" })
-		.set<canvas2d::gui::LayoutX>({ "50%" })
-		.set<canvas2d::gui::LayoutY>({ "10%" })
-		.set<canvas2d::gui::ID>({ "test-button-id" });
-
-	auto labelEnt = world.entity("Label")
-		.add(canvas2d::gui::Label)
-		.set<canvas2d::gui::Text>({ "Test label" })
-		.set<canvas2d::gui::ID>({ "label-id" });
-
 
 	
 
