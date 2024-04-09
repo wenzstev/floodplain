@@ -43,7 +43,7 @@ namespace canvas2d
 			Panel
 		};
 
-
+		struct CreatedWidget {};
 
 		struct module {
 			module(flecs::world& world);

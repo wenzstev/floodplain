@@ -20,7 +20,7 @@
 
 int main(int, char* []) {
 
-	flecs::world world;
+	flecs::world world; 
 
 	world.import<transform>();
 	world.import<canvas2d::module>();
@@ -36,7 +36,7 @@ int main(int, char* []) {
 		.set<canvas2d::rendering::Rectangle>({ 30, 30 })
 		.add<canvas2d::rendering::DrawnIn, canvas2d::rendering::Background>()
 		.set<agents::CarryingCapacity>({ 20});
-
+	
 	flecs::entity g = world.entity("Grid")
 		.set<transform::Position2, transform::World>({ 700, 500 })
 		.set<grid_module::Grid>({
@@ -127,7 +127,6 @@ int main(int, char* []) {
 		.term_at(4).second<transform::World>()
 		.each([isClicked](flecs::iter& it, size_t i, canvas2d::input_processing::InputState& inputState, canvas2d::display::Screen& camera, canvas2d::rendering::Rectangle& rect, transform::Position2& pos)
 			{
-
 				if (!inputState.MouseButtonPressed[sf::Mouse::Left]) return;
 
 				auto mousePos = inputState.CursorLocation;
@@ -136,9 +135,9 @@ int main(int, char* []) {
 				if (isClicked(pos, rect, mouseWorldPos))
 				{
 					auto e = it.entity(i);
-					auto PopulationLabel = it.world().lookup("PopulationLabel");
+					auto PopulationLabel = it.world().lookup("LeftHandPanel::StatsPanel::PopulationLabel");
 					PopulationLabel.add<DisplaysPop>(e);
-					auto AvgColorLabel = it.world().lookup("AvgColorLabel");
+					auto AvgColorLabel = it.world().lookup("LeftHandPanel::StatsPanel::AvgColorLabel");
 					AvgColorLabel.add<DisplaysColor>(e);
 				}
 			});
@@ -146,7 +145,61 @@ int main(int, char* []) {
 
 	ecs_plecs_from_file(world, "gui.flecs");
 
-	
+
+	struct Ticker {
+		int numTicks;
+	};
+
+	world.set<Ticker>({ 0 });
+
+	world.system<Ticker>()
+		.term_at(1).singleton()
+		.each([](flecs::iter& it, size_t i, Ticker& ticker)
+			{
+				ticker.numTicks += 1;
+			});
+
+	struct DisplayTicks {};
+
+	world.defer_begin();
+	auto globalTickerEnt = world.lookup("LeftHandPanel::StatsPanel::TotalTicksLabel");
+	globalTickerEnt.add<DisplayTicks>();
+	world.defer_end();
+
+	world.system<Ticker, canvas2d::gui::Text>()
+		.term_at(1).singleton()
+		.with<DisplayTicks>()
+		.each([](flecs::entity e, Ticker& ticker, canvas2d::gui::Text& text)
+			{
+				e.set<canvas2d::gui::Text>({ "Time since start: " + std::to_string(ticker.numTicks) });
+			});
+
+	struct DisplayPop {};
+
+
+	world.observer<TotalPop>()
+		.term_at(1).singleton()
+		.event(PopGained)
+		.each([](flecs::iter& it, size_t i, TotalPop& totalPop)
+		{
+			totalPop.value += 1;
+		});
+
+	world.observer<TotalPop>()
+		.term_at(1).singleton()
+		.event(PopLost)
+		.each([](flecs::iter& it, size_t i, TotalPop& totalPop)
+		{
+			totalPop.value -= 1;
+		});
+
+	world.defer_begin();
+	auto globalPopEnt = world.lookup("LeftHandPanel::StatsPanel::TotalTicksLabel");
+	globalPopEnt.add<DisplayPop>();
+	world.defer_end();
+
+	world.system<canvas2d::gui::Text, canvas2d::rendering::Rectangle>()
+		.term_at(1).
 
 	world.set_threads(12);
 	return world.app().enable_rest().run();

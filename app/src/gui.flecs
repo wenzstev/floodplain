@@ -2,28 +2,43 @@ using canvas2d.gui.module
 using transform
 using flecs.meta
 
-
-CurrentTilePanel {
+LeftHandPanel {
 	- (WidgetType, Panel)
-	- ID {"plecs-label"}
+	- ID {"left-hand-panel"}
 	- LayoutX {"5%"}
 	- LayoutY {"5%"}
-	- (Position2, Size) {200, 100}
+	- (Position2, Size) {300, 100}
+	StatsPanel {
+		- (WidgetType, Panel)
+		- ID {"stats-panel"}
+		- (Position2, Size) {300, 100}
+		GlobalPopulationLabel {
+			- (WidgetType, Label)
+			- ID {"global-population-label"}
+			- LayoutX {"5%"}
+			- LayoutY {"5%"}
+			- Text {"Current Population: 0"}
+		}
+		TotalTicksLabel {
+			- (WidgetType, Label)
+			- ID {"total-ticks-label"}
+			- LayoutX {"5%"}
+			- LayoutY {"25%"}
+			- Text {"Turns since start: 0"}
+		}
+		PopulationLabel {
+			- (WidgetType, Label)
+			- ID {"population-label"}
+			- LayoutX {"5%"}
+			- LayoutY {"50%"}
+			- Text {"Select a tile to see population."}
+		}
+		AvgColorLabel {
+			- (WidgetType, Label)
+			- ID {"avg-color-tile"}
+			- LayoutX {"5%"}
+			- LayoutY {"75%"}
+			- Text {"No tile selected"}
+		}
+	}
 }
-
-AvgColorLabel {
-	- (WidgetType, Label)
-	- ID {"avg-color-tile"}
-	- LayoutX {"7%"}
-	- LayoutY {"6%"}
-	- Text {"No tile selected"}
-}
-
-PopulationLabel {
-	- (WidgetType, Label)
-	- ID {"population-label"}
-	- LayoutX {"7%"}
-	- LayoutY {"9%"}
-	- Text {"No tile selected."}
-}
-

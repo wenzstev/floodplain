@@ -7,6 +7,15 @@
 
 agents::agents(flecs::world& world)
 {
+	struct TotalPop {
+		size_t value;
+	};
+
+	world.add<TotalPop>();
+
+	auto PopGained = world.entity("PopGained");
+	auto PopLost = world.entity("PopLost");
+
 	world.component<Agent>()
 		.member<transform::Color>("Color");
 
@@ -32,6 +41,7 @@ agents::agents(flecs::world& world)
 				newAgent.set<transform::Position2, transform::World>({ 0,0 });
 				auto agentEntity = it.entity(i);
 				newAgent.child_of(agentEntity.parent());
+				newAgent.fire(PopGained);
 			});
 
 	world.system<CarryingCapacity>("CheckCC")
@@ -47,6 +57,7 @@ agents::agents(flecs::world& world)
 						if (count > cc.maxPop)
 						{
 							child.mut(e).destruct();
+							e.fire(PopLost);
 						}
 					});
 

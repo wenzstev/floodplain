@@ -34,6 +34,7 @@ void SetupWidgetObserver(
 			{
 				auto widget = constructorFunction();
 				if (widget) gui.gui->add(widget, id.id);
+				e.add<gui::CreatedWidget>();
 			});
 
 
@@ -139,6 +140,42 @@ gui::module::module(flecs::world& world)
 				if (!widget) return;
 				widget->setSize(pos.x, pos.y);
 			});
+	/*
+	world.observer<gui::GUI, gui::ID, transform::Color>()
+		.term_at(1).singleton()
+		.with<CreatedWidget>()
+		.event(flecs::OnSet)
+		.each([](flecs::entity e, gui::GUI& gui, gui::ID& id, transform::Color& color)
+			{
+				auto widget = gui.gui->get(id.id);
+				if (!widget) return;
+				// TODO: Set the color
+			});
+			*/
+
+	world.observer<gui::GUI, gui::ID, gui::ID>()
+		.term_at(1).singleton()
+		.term_at(3).parent().cascade()
+		.term<WidgetType>(WidgetType::Panel).parent().cascade()
+		.with<CreatedWidget>()
+		.term<CreatedWidget>().parent().cascade()
+		.event(flecs::OnSet)
+		.each([](flecs::iter& it, size_t i, gui::GUI& gui, gui::ID& idChild, gui::ID& idParent)
+			{
+				auto childWidget = gui.gui->get(idChild.id);
+				auto parentWidget = gui.gui->get(idParent.id);
+			
+				if (auto castedParent = std::dynamic_pointer_cast<tgui::Panel>(parentWidget))
+				{
+					std::cout << "Making " + idParent.id + " a parent of " + idChild.id << "\n";
+					childWidget->getParent()->remove(childWidget); // remove old parent, unsure if necessary//
+					castedParent->add(childWidget);
+				}
+				else
+				{
+					std::cout << "cast not working" << "\n";
+				}
+			});
 }
 
 
@@ -173,34 +210,6 @@ void gui::module::setup_gui(flecs::entity ent, gui::GUI& gui)
 			});
 
 	std::cout << "Created gui!";
-}
-
-void gui::module::setup_widget(flecs::entity ent, gui::ID& id)
-{
-	std::cout << "Attempting to create widget \n";
-	auto world = ent.world();
-	auto gui = get_gui(world);
-
-	auto text = ent.get<Text>();
-
-	auto type = ent.get<gui::WidgetType>();
-	std::shared_ptr<tgui::Widget> widget;
-	if (!type) return;
-	switch (type[0])
-	{
-	case Button:
-		widget = tgui::Button::create(text ? text->text : "");
-		break;
-	case Label:
-		widget = tgui::Label::create(text ? text->text : "");
-		break;
-	default:
-		break;
-	}
-
-	set_layout(widget, ent);
-	gui->gui->add(widget, id.id);
-	std::cout << "Created widget! \n";
 }
 
 
