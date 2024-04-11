@@ -19,5 +19,15 @@ struct agents
 		int maxPop;
 	};
 
+
+	struct TotalPop {
+		size_t value;
+	};
+
+	struct PopGained {};
+	struct PopLost {};
+
 	agents(flecs::world& world);
+
+
 };

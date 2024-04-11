@@ -176,30 +176,30 @@ int main(int, char* []) {
 
 	struct DisplayPop {};
 
-
-	world.observer<TotalPop>()
+	/*
+	world.observer<agents::TotalPop>()
 		.term_at(1).singleton()
-		.event(PopGained)
-		.each([](flecs::iter& it, size_t i, TotalPop& totalPop)
+		.event<agents::PopGained>()
+		.each([](flecs::iter& it, size_t i, agents::TotalPop& totalPop)
 		{
+			std::cout << "Pop gained! \n";
 			totalPop.value += 1;
 		});
 
-	world.observer<TotalPop>()
+	world.observer<agents::TotalPop>()
 		.term_at(1).singleton()
-		.event(PopLost)
-		.each([](flecs::iter& it, size_t i, TotalPop& totalPop)
+		.event<agents::PopLost>()
+		.each([](flecs::iter& it, size_t i, agents::TotalPop& totalPop)
 		{
+			std::cout << "Pop lost! \n";
 			totalPop.value -= 1;
 		});
-
+		*/
 	world.defer_begin();
 	auto globalPopEnt = world.lookup("LeftHandPanel::StatsPanel::TotalTicksLabel");
 	globalPopEnt.add<DisplayPop>();
 	world.defer_end();
 
-	world.system<canvas2d::gui::Text, canvas2d::rendering::Rectangle>()
-		.term_at(1).
 
 	world.set_threads(12);
 	return world.app().enable_rest().run();
