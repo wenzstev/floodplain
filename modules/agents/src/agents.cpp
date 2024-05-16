@@ -63,7 +63,7 @@ agents::agents(flecs::world& world)
 			});
 
 	world.system<Agent>("ChangeColor")
-		.multi_threaded()
+		//.multi_threaded()
 		.each([](flecs::entity e, Agent& a)
 			{
 				transform::Color agentColor = a.color;
@@ -86,7 +86,7 @@ agents::agents(flecs::world& world)
 
 	auto mergeAgents = world.system<>("MergeAgents")
 		.with<CarryingCapacity>()
-		.multi_threaded()
+		//.multi_threaded()
 		.each([](flecs::entity e)
 			{
 				float r = 0, g = 0, b = 0;

@@ -13,30 +13,15 @@ endif()
 project ("Floodplain")
 
 include(FetchContent)
-FetchContent_Declare(
-	flecs
-	GIT_REPOSITORY https://github.com/SanderMertens/flecs.git
-	GIT_TAG master
-)
-FetchContent_MakeAvailable(flecs)
 
-FetchContent_Declare(
-	SFML 
-	GIT_REPOSITORY https://github.com/SFML/SFML.git 
-	GIT_TAG 2.6.x
-)
 
-FetchContent_MakeAvailable(SFML)
+add_subdirectory(external/flecs)
+add_subdirectory(external/SFML)
 
 set (TGUI_BACKEND "SFML_GRAPHICS" CACHE STRING "Set TGUI Backend to SFML_GRAPHICS" FORCE)
 
-FetchContent_Declare(
-	TGUI 
-	GIT_REPOSITORY https://github.com/texus/TGUI.git
-	GIT_TAG v1.2.0
-)	
+add_subdirectory(external/TGUI)
 
-FetchContent_MakeAvailable(TGUI)
 
 # Set the option for static linking
 set(SFML_BUILD_SHARED_LIBS OFF CACHE BOOL "" FORCE)

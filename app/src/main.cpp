@@ -199,9 +199,10 @@ int main(int, char* []) {
 	auto globalPopEnt = world.lookup("LeftHandPanel::StatsPanel::TotalTicksLabel");
 	globalPopEnt.add<DisplayPop>();
 	world.defer_end();
+	
+	
 
-
-	world.set_threads(12);
+	world.set_threads(1);
 	return world.app().enable_rest().run();
 
 }
