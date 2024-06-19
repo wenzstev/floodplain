@@ -63,7 +63,7 @@ int main(int, char* []) {
 
 
 
-	flecs::entity cellA = world.lookup("Grid::Cell 0 0");
+	flecs::entity cellA = world.lookup("Grid::Cell 1 10");
 	flecs::entity cellB = world.lookup("Grid::Cell 20 1");
 	flecs::entity cellC = world.lookup("Grid::Cell 25 25");
 
