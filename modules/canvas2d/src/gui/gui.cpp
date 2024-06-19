@@ -3,6 +3,7 @@
 #include "gui.h"
 #include "display.h"
 #include "transform.h"
+#include <iostream>
 
 using namespace canvas2d;
 
@@ -21,6 +22,18 @@ struct SupportsTextUpdate<tgui::Label> {
 	static constexpr bool value = true;
 };
 
+template<typename WidgetType>
+struct IsClickable {
+	static constexpr bool value = false;
+};
+
+template<>
+struct IsClickable<tgui::Button> {
+	static constexpr bool value = true;
+};
+
+
+
 template<gui::WidgetType W, typename WidgetT>
 void SetupWidgetObserver(
 	flecs::world& world,
@@ -35,11 +48,23 @@ void SetupWidgetObserver(
 				auto widget = constructorFunction();
 				if (widget) gui.gui->add(widget, id.id);
 				e.add<gui::CreatedWidget>();
+
+//				if constexpr (IsClickable<WidgetT>::value)
+//				{
+//					if (auto castedWidget = std::dynamic_pointer_cast<WidgetT>(widget))
+//					{
+//						auto ptr = std::make_shared<flecs::entity>(e);
+//						castedWidget->onClick([ptr]() {
+//							ptr->emit<gui::WidgetClicked>();
+//							});
+//					}
+//				}
 			});
 
 
 	if constexpr (SupportsTextUpdate<WidgetT>::value) {
 		world.observer<gui::GUI, gui::ID, gui::Text>()
+			.with(W)
 			.term_at(1).singleton()
 			.event(flecs::OnSet)
 			.each([](flecs::entity e, gui::GUI& gui, gui::ID& id, gui::Text& text)
@@ -52,6 +77,7 @@ void SetupWidgetObserver(
 					}
 				});
 	}
+
 }
 
 
@@ -246,4 +272,30 @@ std::variant <std::string, std::pair<std::string, std::string>> gui::module::get
 	auto layoutY = ent.get<LayoutY>();
 
 	return std::make_pair(layoutX ? layoutX->text : "", layoutY ? layoutY->text : "");
+}
+
+
+void canvas2d::gui::set_command(flecs::entity& e, std::function<void()> callback)
+{
+	flecs::world world = e.world();
+	auto gui = world.get<canvas2d::gui::GUI>();
+	if (!gui) {
+		throw std::runtime_error("Need a GUI to set a command!");
+	}
+	auto id = e.get<canvas2d::gui::ID>();
+	if (!id) {
+		throw std::runtime_error("The entity needs an ID component!");
+	}
+	auto widget = gui->gui->get(id->id);
+	if (!widget) {
+		throw std::runtime_error("Entity's ID does not match a registered widget.");
+	}
+	auto castedWidget = std::dynamic_pointer_cast<tgui::Button>(widget);
+	if (castedWidget == nullptr)
+	{
+		throw std::runtime_error("Widget is not a button!");
+	}
+
+	castedWidget->onClick(callback);
+
 }

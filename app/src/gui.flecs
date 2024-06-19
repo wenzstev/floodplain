@@ -7,7 +7,7 @@ LeftHandPanel {
 	- ID {"left-hand-panel"}
 	- LayoutX {"5%"}
 	- LayoutY {"5%"}
-	- (Position2, Size) {300, 100}
+	- (Position2, Size) {400, 100}
 	StatsPanel {
 		- (WidgetType, Panel)
 		- ID {"stats-panel"}
@@ -39,6 +39,13 @@ LeftHandPanel {
 			- LayoutX {"5%"}
 			- LayoutY {"75%"}
 			- Text {"No tile selected"}
+		}
+		TestButton {
+			- (WidgetType, Button)
+			- ID {"test-button"}
+			- LayoutX {"5%"}
+			- LayoutY {"90%"}
+			- Text {"This is a test button."}
 		}
 	}
 }

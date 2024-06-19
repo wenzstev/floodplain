@@ -63,7 +63,7 @@ int main(int, char* []) {
 
 
 
-	flecs::entity cellA = world.lookup("Grid::Cell 1 10");
+	flecs::entity cellA = world.lookup("Grid::Cell 0 0");
 	flecs::entity cellB = world.lookup("Grid::Cell 20 1");
 	flecs::entity cellC = world.lookup("Grid::Cell 25 25");
 
@@ -176,13 +176,12 @@ int main(int, char* []) {
 
 	struct DisplayPop {};
 
-	/*
+	
 	world.observer<agents::TotalPop>()
 		.term_at(1).singleton()
 		.event<agents::PopGained>()
 		.each([](flecs::iter& it, size_t i, agents::TotalPop& totalPop)
 		{
-			std::cout << "Pop gained! \n";
 			totalPop.value += 1;
 		});
 
@@ -191,18 +190,40 @@ int main(int, char* []) {
 		.event<agents::PopLost>()
 		.each([](flecs::iter& it, size_t i, agents::TotalPop& totalPop)
 		{
-			std::cout << "Pop lost! \n";
 			totalPop.value -= 1;
 		});
-		*/
+
+
 	world.defer_begin();
-	auto globalPopEnt = world.lookup("LeftHandPanel::StatsPanel::TotalTicksLabel");
+	auto globalPopEnt = world.lookup("LeftHandPanel::StatsPanel::GlobalPopulationLabel");
 	globalPopEnt.add<DisplayPop>();
 	world.defer_end();
+
+	world.system<agents::TotalPop, canvas2d::gui::Text>()
+		.term_at(1).singleton()
+		.with<DisplayPop>()
+		.each([](flecs::entity e, agents::TotalPop& totalPop, canvas2d::gui::Text& text)
+			{
+				e.set<canvas2d::gui::Text>({ "Population: " + std::to_string(totalPop.value) });
+			});
+
+
+	world.observer<canvas2d::gui::GUI, canvas2d::gui::ID>()
+		.term_at(1).singleton()
+		.event<canvas2d::gui::WidgetClicked>()
+		.each([](flecs::entity e, canvas2d::gui::GUI& gui, canvas2d::gui::ID& id)
+			{
+				if (e.name() != "val") return;
+				std::cout << "Test";
+				std::cout << e.name();
+			});
+
+	auto button = world.lookup("LeftHandPanel::StatsPanel::TestButton");
+	canvas2d::gui::set_command(button, ([] {std::cout << "test!!"; }));
+	
 	
 	
 
 	world.set_threads(1);
 	return world.app().enable_rest().run();
-
 }

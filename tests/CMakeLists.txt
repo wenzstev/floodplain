@@ -17,6 +17,7 @@ add_executable(
 	transformtests.cc
 	canvas2dtests.cc 
 	gridtests.cc
+	guitests.cc
 )
 
 

@@ -45,6 +45,13 @@ namespace canvas2d
 
 		struct CreatedWidget {};
 
+		struct WidgetClicked {};
+
+		/**
+			Set a command on a button
+		*/
+		void set_command(flecs::entity& e, std::function<void()> callback);
+
 		struct module {
 			module(flecs::world& world);
 

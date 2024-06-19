@@ -10,7 +10,7 @@ agents::agents(flecs::world& world)
 	world.component<TotalPop>()
 		.member<size_t>("Population");
 
-	world.add<TotalPop>();
+	world.set<TotalPop>({ 0 });
 
 	world.component<Agent>()
 		.member<transform::Color>("Color");
@@ -28,19 +28,13 @@ agents::agents(flecs::world& world)
 	world.system<Agent>("AgentReproduce")
 		.each([](flecs::iter& it, size_t i, Agent& a)
 			{
-				if (rand() % 5 != 1) return;
+				if (rand() % 5 != 1) return; // 5% chance to reproduce 
 				auto world = it.world();
 
-				auto agentPrefab = world.lookup("AgentPrefab");
-				auto newAgent = world.entity();
-				world.make_alive(newAgent);
-				newAgent.set<agents::Age>({ 0 });
-				newAgent.set<agents::Agent>({ { a.color.r, a.color.g, a.color.b, a.color.a } });
-				newAgent.set<transform::Position2, transform::Local>({ 0,0 });
-				newAgent.set<transform::Position2, transform::World>({ 0,0 });
+				auto newAgent = makeAgent(world, a);
+				
 				auto agentEntity = it.entity(i);
 				newAgent.child_of(agentEntity.parent());
-				world.event<PopGained>().id<TotalPop>().entity(newAgent).emit();
 			});
 
 	world.system<CarryingCapacity>("CheckCC")
@@ -55,8 +49,7 @@ agents::agents(flecs::world& world)
 						count++;
 						if (count > cc.maxPop)
 						{
-							child.mut(e).destruct();
-							e.world().event<PopLost>().id<TotalPop>().entity(e).emit();
+							destroyAgent(child);
 						}
 					});
 
@@ -183,7 +176,36 @@ agents::agents(flecs::world& world)
 		.each([](flecs::entity e, agents::Age& a)
 			{
 				a.age++;
-				if (a.age > 40) e.destruct();
+				if (a.age > 40) destroyAgent(e);
 			});
 
+}
+
+flecs::entity agents::makeAgent(flecs::world& world, const agents::Agent& parent)
+{
+	auto agentPrefab = world.lookup("AgentPrefab");
+	auto newAgent = world.entity();
+	world.make_alive(newAgent);
+	newAgent.set<agents::Age>({ 0 });
+	newAgent.set<agents::Agent>({ { parent.color.r, parent.color.g, parent.color.b, parent.color.a } });
+	newAgent.set<transform::Position2, transform::Local>({ 0,0 });
+	newAgent.set<transform::Position2, transform::World>({ 0,0 });
+	fireNewAgentEvent(world);
+	return newAgent;
+}
+
+void agents::destroyAgent(flecs::entity& agent)
+{
+	agent.destruct();
+	fireLostAgentEvent(agent.world());
+}
+
+void agents::fireNewAgentEvent(flecs::world& world)
+{
+	world.event<agents::PopGained>().id<agents::TotalPop>().entity(world.entity<agents::TotalPop>()).emit();
+}
+
+void agents::fireLostAgentEvent(flecs::world& world)
+{
+	world.event<agents::PopLost>().id<agents::TotalPop>().entity(world.entity<agents::TotalPop>()).emit();
 }
