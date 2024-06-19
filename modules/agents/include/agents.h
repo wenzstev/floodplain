@@ -30,4 +30,10 @@ struct agents
 	agents(flecs::world& world);
 
 
+	static flecs::entity makeAgent(flecs::world& world, const agents::Agent& parent);
+	static void destroyAgent(flecs::entity& agent);
+	static void fireLostAgentEvent(flecs::world& world);
+	static void fireNewAgentEvent(flecs::world& world);
+
+
 };

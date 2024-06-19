@@ -45,6 +45,24 @@ namespace canvas2d
 
 		struct CreatedWidget {};
 
+		struct WidgetClicked {};
+
+
+		/**
+		 * @brief Set a command on a button.
+		 *
+		 * This function sets a command (callback) to be executed when the button is clicked.
+		 *
+		 * @param e The entity that contains the GUI and ID components.
+		 * @param callback The function to be called when the button is clicked.
+		 *
+		 * @throws std::runtime_error if the GUI component is not found.
+		 * @throws std::runtime_error if the ID component is not found.
+		 * @throws std::runtime_error if the widget with the given ID is not registered.
+		 * @throws std::runtime_error if the widget is not a button.
+		 */
+		void set_command(flecs::entity& e, std::function<void()> callback);
+
 		struct module {
 			module(flecs::world& world);
 
