@@ -24,6 +24,11 @@ struct agents
 		size_t value;
 	};
 
+	enum SystemType {
+		Main,
+		Draw
+	};
+
 	struct PopGained {};
 	struct PopLost {};
 
@@ -34,6 +39,9 @@ struct agents
 	static void destroyAgent(flecs::entity& agent);
 	static void fireLostAgentEvent(flecs::world& world);
 	static void fireNewAgentEvent(flecs::world& world);
+
+	static void stopAgentSystems(flecs::world& world);
+	static void startAgentSystems(flecs::world& world);
 
 
 };

@@ -7,7 +7,7 @@ LeftHandPanel {
 	- ID {"left-hand-panel"}
 	- LayoutX {"5%"}
 	- LayoutY {"5%"}
-	- (Position2, Size) {300, 100}
+	- (Position2, Size) {300, 500}
 	StatsPanel {
 		- (WidgetType, Panel)
 		- ID {"stats-panel"}
@@ -39,6 +39,27 @@ LeftHandPanel {
 			- LayoutX {"5%"}
 			- LayoutY {"75%"}
 			- Text {"No tile selected"}
+		}
+	}
+	ButtonPanel {
+		- (WidgetType, Panel)
+		- ID {"button-panel"}
+		- (Position2, Size) {300, 100}
+		- LayoutX {"5%"}
+		- LayoutY {"50%"}
+		PlayButton {
+			- (WidgetType, Button)
+			- ID {"play-button"}
+			- LayoutX {"5%"}
+			- LayoutY {"5%"}
+			- Text {"Play"}
+		}
+		PauseButton {
+			- (WidgetType, Button)
+			- ID {"pause-button"}
+			- LayoutX {"20%"}
+			- LayoutY {"5%"}
+			- Text {"Pause"}
 		}
 	}
 }

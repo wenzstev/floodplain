@@ -14,6 +14,7 @@ FetchContent_MakeAvailable(googletest)
 enable_testing()
 add_executable(
 	floodplaintests 
+	agenttests.cc
 	transformtests.cc
 	canvas2dtests.cc 
 	gridtests.cc
