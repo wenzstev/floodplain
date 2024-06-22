@@ -25,7 +25,8 @@ agents::agents(flecs::world& world)
 	world.component<PopLost>();
 
 
-	world.system<Agent>("AgentReproduce")
+
+	auto AgentReproduce = world.system<Agent>("AgentReproduce")
 		.each([](flecs::iter& it, size_t i, Agent& a)
 			{
 				if (rand() % 5 != 1) return; // 5% chance to reproduce 
@@ -33,11 +34,14 @@ agents::agents(flecs::world& world)
 
 				auto newAgent = makeAgent(world, a);
 				
+
 				auto agentEntity = it.entity(i);
 				newAgent.child_of(agentEntity.parent());
-			});
+			})
+		.add(agents::Main);
 
-	world.system<CarryingCapacity>("CheckCC")
+
+	auto CheckCC = world.system<CarryingCapacity>("CheckCC")
 		.multi_threaded()
 		.each([](flecs::entity e, const CarryingCapacity& cc)
 			{
@@ -53,9 +57,10 @@ agents::agents(flecs::world& world)
 						}
 					});
 
-			});
+			})
+		.add(agents::Main);
 
-	world.system<Agent>("ChangeColor")
+	auto ChangeColor = world.system<Agent>("ChangeColor")
 		//.multi_threaded()
 		.each([](flecs::entity e, Agent& a)
 			{
@@ -75,9 +80,11 @@ agents::agents(flecs::world& world)
 					modifyColor(a.color.b),
 					255
 					});
-			});
+			})
+		.add(agents::Main);
 
-	auto mergeAgents = world.system<>("MergeAgents")
+
+	auto MergeAgents = world.system<>("MergeAgents")
 		.with<CarryingCapacity>()
 		//.multi_threaded()
 		.each([](flecs::entity e)
@@ -121,10 +128,11 @@ agents::agents(flecs::world& world)
 						agent->color.g = cg + prevG;
 						agent->color.b = cb + prevB;
 					});
-			});
+			})
+		.add(agents::Main);
 
 
-	world.system<agents::Agent>("AgentMove")
+	auto AgentMove = world.system<agents::Agent>("AgentMove")
 		.each([](flecs::entity e, agents::Agent& a)
 			{
 				if (rand() % 10 != 1) return;
@@ -139,7 +147,9 @@ agents::agents(flecs::world& world)
 					e.remove(flecs::ChildOf, parent);
 					e.add(flecs::ChildOf, newCell);
 				}
-			});
+			})
+		.add(agents::Main);
+
 
 	world.system<transform::Color>("AgentDraw")
 		.with<CarryingCapacity>()
@@ -168,16 +178,19 @@ agents::agents(flecs::world& world)
 				color.g = g / count;
 				color.b = b / count;
 				color.a = 255;
-			});
+			})
+		.add(agents::Draw);
 
 
 
-	world.system<agents::Age>("Age")
+	auto AgentAge = world.system<agents::Age>("AgentAge")
 		.each([](flecs::entity e, agents::Age& a)
 			{
 				a.age++;
 				if (a.age > 40) destroyAgent(e);
-			});
+			})
+		.add(agents::Main);
+
 
 }
 
@@ -208,4 +221,36 @@ void agents::fireNewAgentEvent(flecs::world& world)
 void agents::fireLostAgentEvent(flecs::world& world)
 {
 	world.event<agents::PopLost>().id<agents::TotalPop>().entity(world.entity<agents::TotalPop>()).emit();
+}
+
+
+void agents::startAgentSystems(flecs::world& world)
+{
+	flecs::filter<> f = world.filter_builder<>()
+		.with(agents::Main)
+		.with(flecs::Disabled)
+		.build();
+
+	world.defer([&] {
+		f.each([](flecs::entity e)
+			{
+				e.remove(flecs::Disabled);
+			});
+		});
+
+
+}
+
+void agents::stopAgentSystems(flecs::world& world)
+{
+	flecs::filter<> f = world.filter_builder<>()
+		.with(agents::Main)
+		.build();
+
+	world.defer([&] {
+		f.each([](flecs::entity e)
+			{
+				e.add(flecs::Disabled);
+			});
+		});
 }

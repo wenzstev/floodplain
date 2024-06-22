@@ -20,7 +20,7 @@
 
 int main(int, char* []) {
 
-	flecs::world world; 
+	flecs::world world;
 
 	world.import<transform>();
 	world.import<canvas2d::module>();
@@ -35,8 +35,8 @@ int main(int, char* []) {
 	auto gridPrefab = world.prefab("Rect")
 		.set<canvas2d::rendering::Rectangle>({ 30, 30 })
 		.add<canvas2d::rendering::DrawnIn, canvas2d::rendering::Background>()
-		.set<agents::CarryingCapacity>({ 20});
-	
+		.set<agents::CarryingCapacity>({ 20 });
+
 	flecs::entity g = world.entity("Grid")
 		.set<transform::Position2, transform::World>({ 700, 500 })
 		.set<grid_module::Grid>({
@@ -76,7 +76,7 @@ int main(int, char* []) {
 	agentB.child_of(cellB);
 	agentC.child_of(cellC);
 
-	
+
 	auto camera = world.entity();
 	camera.set<transform::Position2, canvas2d::display::ViewPos>({ 350, 300 });
 	camera.set<transform::Position2, canvas2d::display::ViewScale>({ 300, 200 });
@@ -87,7 +87,7 @@ int main(int, char* []) {
 			clickPos.y >= pos.y && clickPos.y <= (pos.y + rect.height);
 		});
 
-	
+
 	struct DisplaysColor {};
 	struct DisplaysPop {};
 
@@ -109,7 +109,7 @@ int main(int, char* []) {
 		.with<DisplaysPop>(flecs::Wildcard)
 		.each([](flecs::iter& it, size_t i, canvas2d::gui::Text& text)
 			{
-				auto displayCell = it.entity(i).target<DisplaysPop>(); 
+				auto displayCell = it.entity(i).target<DisplaysPop>();
 				int agentCount = 0;
 				displayCell.children([&agentCount](flecs::entity child)
 					{
@@ -152,7 +152,7 @@ int main(int, char* []) {
 
 	world.set<Ticker>({ 0 });
 
-	world.system<Ticker>()
+	auto TimeSinceStart = world.system<Ticker>("TimeSinceStart")
 		.term_at(1).singleton()
 		.each([](flecs::iter& it, size_t i, Ticker& ticker)
 			{
@@ -176,22 +176,22 @@ int main(int, char* []) {
 
 	struct DisplayPop {};
 
-	
+
 	world.observer<agents::TotalPop>()
 		.term_at(1).singleton()
 		.event<agents::PopGained>()
 		.each([](flecs::iter& it, size_t i, agents::TotalPop& totalPop)
-		{
-			totalPop.value += 1;
-		});
+			{
+				totalPop.value += 1;
+			});
 
 	world.observer<agents::TotalPop>()
 		.term_at(1).singleton()
 		.event<agents::PopLost>()
 		.each([](flecs::iter& it, size_t i, agents::TotalPop& totalPop)
-		{
-			totalPop.value -= 1;
-		});
+			{
+				totalPop.value -= 1;
+			});
 
 
 	world.defer_begin();
@@ -208,21 +208,22 @@ int main(int, char* []) {
 			});
 
 
-	world.observer<canvas2d::gui::GUI, canvas2d::gui::ID>()
-		.term_at(1).singleton()
-		.event<canvas2d::gui::WidgetClicked>()
-		.each([](flecs::entity e, canvas2d::gui::GUI& gui, canvas2d::gui::ID& id)
-			{
-				if (e.name() != "val") return;
-				std::cout << "Test";
-				std::cout << e.name();
-			});
 
-	auto button = world.lookup("LeftHandPanel::StatsPanel::TestButton");
-	canvas2d::gui::set_command(button, ([] {std::cout << "test!!"; }));
+
+	auto playButton = world.lookup("LeftHandPanel::ButtonPanel::PlayButton");
+
+	canvas2d::gui::set_command(playButton, [&world, &TimeSinceStart](){ 
+			agents::startAgentSystems(world); 
+			TimeSinceStart.remove(flecs::Disabled);
+		});
+
+	auto pauseButton = world.lookup("LeftHandPanel::ButtonPanel::PauseButton");
+	canvas2d::gui::set_command(pauseButton, [&world, &TimeSinceStart]() { 
+			agents::stopAgentSystems(world); 
+			TimeSinceStart.add(flecs::Disabled);
+		});
 	
-	
-	
+
 
 	world.set_threads(1);
 	return world.app().enable_rest().run();
