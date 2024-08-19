@@ -61,5 +61,12 @@ LeftHandPanel {
 			- LayoutY {"5%"}
 			- Text {"Pause"}
 		}
+		ResetButton {
+			- (WidgetType, Button)
+			- ID {"reset-button"}
+			- LayoutX {"40%"}
+			- LayoutY {"5%"}
+			- Text {"Reset"}
+		}
 	}
 }

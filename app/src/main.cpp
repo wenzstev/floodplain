@@ -61,39 +61,15 @@ int main(int, char* []) {
 
 	world.add<canvas2d::gui::GUI>();
 
-
-
-	flecs::entity cellA = world.lookup("Grid::Cell 1 10");
-	flecs::entity cellB = world.lookup("Grid::Cell 20 1");
-	flecs::entity cellC = world.lookup("Grid::Cell 25 25");
-
-	auto agentA = world.entity().is_a(agentPrefab).set<agents::Agent>({ {100, 200, 100, 255} });
-	auto agentB = world.entity().is_a(agentPrefab).set<agents::Agent>({ {200, 100, 100, 255} });
-	auto agentC = world.entity().is_a(agentPrefab).set<agents::Agent>({ {100, 100, 200, 255} });
-
-
-	agentA.child_of(cellA);
-	agentB.child_of(cellB);
-	agentC.child_of(cellC);
-
-
 	auto camera = world.entity();
 	camera.set<transform::Position2, canvas2d::display::ViewPos>({ 350, 300 });
 	camera.set<transform::Position2, canvas2d::display::ViewScale>({ 300, 200 });
-
-
-	auto isClicked = ([](const transform::Position2& pos, const canvas2d::rendering::Rectangle& rect, const sf::Vector2f& clickPos) {
-		return clickPos.x >= pos.x && clickPos.x <= (pos.x + rect.width) &&
-			clickPos.y >= pos.y && clickPos.y <= (pos.y + rect.height);
-		});
-
 
 	struct DisplaysColor {};
 	struct DisplaysPop {};
 
 	world.component<DisplaysColor>().add(flecs::Exclusive);
 	world.component<DisplaysPop>().add(flecs::Exclusive);
-
 
 	world.system<canvas2d::gui::Text>()
 		.with<DisplaysColor>(flecs::Wildcard)
@@ -102,7 +78,7 @@ int main(int, char* []) {
 				auto displayCell = it.entity(i).target<DisplaysColor>();
 				auto color = displayCell.get<transform::Color>();
 				if (!color) return;
-				it.entity(i).set<canvas2d::gui::Text>({ "Avg color: " + std::to_string(color->r) + ", " + std::to_string(color->g) + ", " + std::to_string(color->b) }); // works
+				it.entity(i).set<canvas2d::gui::Text>({ "Avg color: " + std::to_string(color->r) + ", " + std::to_string(color->g) + ", " + std::to_string(color->b) }); 
 			});
 
 	world.system<canvas2d::gui::Text>()
@@ -125,14 +101,14 @@ int main(int, char* []) {
 		.term_at(1).singleton()
 		.term_at(2).singleton()
 		.term_at(4).second<transform::World>()
-		.each([isClicked](flecs::iter& it, size_t i, canvas2d::input_processing::InputState& inputState, canvas2d::display::Screen& camera, canvas2d::rendering::Rectangle& rect, transform::Position2& pos)
+		.each([](flecs::iter& it, size_t i, canvas2d::input_processing::InputState& inputState, canvas2d::display::Screen& camera, canvas2d::rendering::Rectangle& rect, transform::Position2& pos)
 			{
 				if (!inputState.MouseButtonPressed[sf::Mouse::Left]) return;
 
 				auto mousePos = inputState.CursorLocation;
 				sf::Vector2i point = { mousePos.x, mousePos.y };
 				auto mouseWorldPos = camera.canvas->mapPixelToCoords(point);
-				if (isClicked(pos, rect, mouseWorldPos))
+				if (canvas2d::input_processing::is_inbounds(pos, rect, mouseWorldPos))
 				{
 					auto e = it.entity(i);
 					auto PopulationLabel = it.world().lookup("LeftHandPanel::StatsPanel::PopulationLabel");
@@ -208,10 +184,7 @@ int main(int, char* []) {
 			});
 
 
-
-
 	auto playButton = world.lookup("LeftHandPanel::ButtonPanel::PlayButton");
-
 	canvas2d::gui::set_command(playButton, [&world, &TimeSinceStart](){ 
 			agents::startAgentSystems(world); 
 			TimeSinceStart.remove(flecs::Disabled);
@@ -222,9 +195,38 @@ int main(int, char* []) {
 			agents::stopAgentSystems(world); 
 			TimeSinceStart.add(flecs::Disabled);
 		});
-	
+
+	auto resetButton = world.lookup("LeftHandPanel::ButtonPanel::ResetButton");
+	canvas2d::gui::set_command(resetButton, [&world]() {
+			agents::clearAllAgents(world);
+			agents::clearImpassableSquares(world);
+			world.set<Ticker>({0});
+		});
 
 
+	auto myCallback = [&world](flecs::iter& it, size_t i, canvas2d::input_processing::InputState& input, canvas2d::display::Screen& screen)
+		{
+			if (!input.PressedKeys[sf::Keyboard::LShift] || !input.LastPressed == sf::Mouse::Left) return;
+			auto clicked = canvas2d::input_processing::get_mouseover_rect(world, input, screen);
+			if (clicked) agents::makeRandomAgent(it.world(), clicked);
+		};
+
+	canvas2d::input_processing::register_click_action(world, myCallback);
+
+	auto toggleTraversable = [&world](flecs::iter& it, size_t i, canvas2d::input_processing::InputState& input, canvas2d::display::Screen& screen)
+		{
+			if (!input.LastPressed == sf::Mouse::Right) return;
+			auto clicked = canvas2d::input_processing::get_mouseover_rect(world, input, screen);
+			if (clicked) {
+				if (clicked.has<agents::Impassable>()) 
+					clicked.remove<agents::Impassable>();
+				else clicked.add<agents::Impassable>();
+			}
+		};
+
+	canvas2d::input_processing::register_click_action(world, toggleTraversable);
+
+		
 	world.set_threads(1);
 	return world.app().enable_rest().run();
 }
