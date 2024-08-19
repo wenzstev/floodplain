@@ -1,3 +1,5 @@
+#pragma once
+
 namespace canvas2d
 {
 	namespace rendering

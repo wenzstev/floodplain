@@ -47,6 +47,18 @@ TEST(AgentTest, CanRestartAgentSim)
 	ASSERT_TRUE(allAreEnabled) << "Not every system is enabled!";
 }
 
+TEST(AgentTest, CanClearImpassableSquares)
+{
+	flecs::world world;
+	world.import<agents>();
+
+	flecs::entity e = world.entity().add<agents::Impassable>();
+
+	agents::clearImpassableSquares(world);
+
+	ASSERT_TRUE(!e.has<agents::Impassable>()) << "Impassable tag was not removed from agent!";
+}
+
 
 // test that agent can move
 

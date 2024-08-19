@@ -63,6 +63,7 @@ namespace canvas2d
 		 */
 		void set_command(flecs::entity& e, std::function<void()> callback);
 
+
 		struct module {
 			module(flecs::world& world);
 

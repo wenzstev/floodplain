@@ -5,6 +5,7 @@
 #include "agents.h"
 #include "grid.h"
 
+
 agents::agents(flecs::world& world)
 {
 	world.component<TotalPop>()
@@ -144,6 +145,7 @@ agents::agents(flecs::world& world)
 				if (refCell.try_get())
 				{
 					flecs::entity newCell = refCell.entity();
+					if (newCell.has<Impassable>()) return;
 					e.remove(flecs::ChildOf, parent);
 					e.add(flecs::ChildOf, newCell);
 				}
@@ -181,31 +183,64 @@ agents::agents(flecs::world& world)
 			})
 		.add(agents::Draw);
 
-
+		world.system<transform::Color>("ImpassableDraw")
+			.with<Impassable>()
+			.each([](flecs::entity e, transform::Color& color)
+				{
+					color.r = 50;
+					color.g = 50;
+					color.b = 50;
+					color.a = 255;
+				})
+			.add(agents::Draw);
 
 	auto AgentAge = world.system<agents::Age>("AgentAge")
 		.each([](flecs::entity e, agents::Age& a)
 			{
 				a.age++;
-				if (a.age > 40) destroyAgent(e);
+				if (a.age > 40) destroyAgent(e); 
 			})
 		.add(agents::Main);
 
 
 }
 
-flecs::entity agents::makeAgent(flecs::world& world, const agents::Agent& parent)
+flecs::entity agents::makeAgent(flecs::world& world, const agents::Agent& copy)
 {
 	auto agentPrefab = world.lookup("AgentPrefab");
 	auto newAgent = world.entity();
 	world.make_alive(newAgent);
 	newAgent.set<agents::Age>({ 0 });
-	newAgent.set<agents::Agent>({ { parent.color.r, parent.color.g, parent.color.b, parent.color.a } });
+	newAgent.set<agents::Agent>({ { copy.color.r, copy.color.g, copy.color.b, copy.color.a } });
 	newAgent.set<transform::Position2, transform::Local>({ 0,0 });
 	newAgent.set<transform::Position2, transform::World>({ 0,0 });
 	fireNewAgentEvent(world);
 	return newAgent;
 }
+
+flecs::entity agents::makeRandomAgent(flecs::world& world, flecs::entity parent)
+{
+	std::random_device rd;
+	std::mt19937 gen(rd());
+
+	std::uniform_int_distribution<> dis(0, 255);
+
+
+	auto newAgent = world.entity();
+	world.make_alive(newAgent);
+
+	newAgent.set<agents::Age>({ 0 });
+	newAgent.set<agents::Agent>({ {static_cast<float>(dis(gen)),static_cast<float>(dis(gen)), static_cast<float>(dis(gen)), 255 } });
+	newAgent.set<transform::Position2, transform::Local>({ 0,0 });
+	newAgent.set<transform::Position2, transform::World>({ 0,0 });
+	newAgent.child_of(parent);
+
+	agents::fireNewAgentEvent(world);
+	return newAgent;
+
+}
+
+
 
 void agents::destroyAgent(flecs::entity& agent)
 {
@@ -251,6 +286,31 @@ void agents::stopAgentSystems(flecs::world& world)
 		f.each([](flecs::entity e)
 			{
 				e.add(flecs::Disabled);
+			});
+		});
+}
+
+
+void agents::clearAllAgents(flecs::world& world)
+{
+	flecs::filter<Agent> f = world.filter_builder<Agent>().build();
+	stopAgentSystems(world);
+	world.defer([&] {
+		f.each([](flecs::entity e, Agent& a) 
+			{
+				e.destruct();
+			});
+		});
+	startAgentSystems(world);
+}
+
+void agents::clearImpassableSquares(flecs::world& world)
+{
+	flecs::filter<> f = world.filter_builder<>().with<Impassable>().build();
+	world.defer([&] {
+		f.each([](flecs::entity e)
+			{
+				e.remove<Impassable>();
 			});
 		});
 }
